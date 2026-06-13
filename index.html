@@ -1,0 +1,2892 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="歴史並び替え">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="apple-touch-icon.png">
+  <title>歴史並び替えトレーニング ver1.1.4</title>
+  <style>
+    :root {
+      --bg: #f6f1e7;
+      --bg2: #edf4ff;
+      --card: rgba(255, 255, 255, 0.82);
+      --text: #172033;
+      --muted: #5b6475;
+      --line: rgba(23, 32, 51, 0.10);
+      --primary: #0f766e;
+      --primary2: #0b5ed7;
+      --success: #167c4d;
+      --danger: #b42318;
+      --warning: #92400e;
+      --shadow: 0 18px 48px rgba(23, 32, 51, 0.10);
+      --radius: 22px;
+      --radius-sm: 14px;
+      --touch: 44px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.95), rgba(255,255,255,0.62) 35%, rgba(255,255,255,0.18) 56%, transparent 70%),
+        linear-gradient(135deg, var(--bg), var(--bg2));
+      background-attachment: fixed;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: var(--touch);
+      border: 0;
+      border-radius: 14px;
+      padding: 0 16px;
+      background: #e9edf5;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .app-shell {
+      width: min(960px, calc(100vw - 24px));
+      margin: 0 auto;
+      padding: 18px 0 56px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0 14px;
+    }
+
+    .brand-block {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(15, 118, 110, 0.10);
+      color: var(--primary);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .brand {
+      margin: 0;
+      font-size: clamp(1.75rem, 4vw, 2.55rem);
+      line-height: 1.08;
+      letter-spacing: 0.02em;
+      font-weight: 900;
+    }
+
+    .brand-sub {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .screen {
+      display: block;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .card h2,
+    .card h3,
+    .card p {
+      margin-top: 0;
+    }
+
+    .card h2 {
+      margin-bottom: 12px;
+      font-size: 1.06rem;
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+      font-size: 0.98rem;
+    }
+
+    .lead {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .hero {
+      padding: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.76)),
+        radial-gradient(circle at top right, rgba(15,118,110,0.13), transparent 42%),
+        radial-gradient(circle at bottom left, rgba(11,94,215,0.12), transparent 36%);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 0.9fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .hero-actions,
+    .action-row,
+    .split-actions,
+    .section-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .section-actions {
+      justify-content: space-between;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.78));
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .stat .value {
+      margin-top: 8px;
+      font-size: 1.35rem;
+      line-height: 1.2;
+      font-weight: 900;
+    }
+
+    .stat .sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+
+    .muted {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .info-pill,
+    .status-pill,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 7px 12px;
+      line-height: 1.2;
+      font-size: 0.88rem;
+      border: 1px solid transparent;
+    }
+
+    .status-pill {
+      background: rgba(15, 118, 110, 0.10);
+      color: var(--primary);
+      border-color: rgba(15, 118, 110, 0.18);
+      font-weight: 700;
+    }
+
+    .chip {
+      background: rgba(23, 32, 51, 0.06);
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      border-color: rgba(23, 32, 51, 0.10);
+      min-height: 40px;
+    }
+
+    .chip.selected {
+      background: linear-gradient(135deg, rgba(15,118,110,0.94), rgba(11,94,215,0.90));
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(15,118,110,0.18);
+    }
+
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .input-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label,
+    .field legend {
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .field input[type="number"],
+    .field select,
+    .field input[type="text"] {
+      min-height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      padding: 0 14px;
+      background: rgba(255,255,255,0.9);
+      color: var(--text);
+      width: 100%;
+    }
+
+    .field input[type="number"]:focus,
+    .field select:focus,
+    .field input[type="text"]:focus {
+      outline: 2px solid rgba(15,118,110,0.20);
+      outline-offset: 1px;
+    }
+
+    .radio-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    .radio-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.74);
+    }
+
+    .radio-item input {
+      margin-top: 3px;
+      transform: scale(1.1);
+    }
+
+    .radio-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+    }
+
+    .small {
+      font-size: 0.88rem;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--primary), #0b5ed7);
+      color: #fff;
+      box-shadow: 0 14px 28px rgba(15,118,110,0.18);
+      font-weight: 800;
+    }
+
+    .secondary {
+      background: rgba(23, 32, 51, 0.08);
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .danger {
+      background: rgba(180, 35, 24, 0.10);
+      color: var(--danger);
+      font-weight: 800;
+    }
+
+    .ghost {
+      background: transparent;
+      border: 1px solid var(--line);
+    }
+
+    .large-btn {
+      min-height: 52px;
+      padding-inline: 20px;
+      font-size: 1rem;
+      border-radius: 16px;
+    }
+
+    .banner {
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      line-height: 1.6;
+    }
+
+    .banner.info {
+      background: rgba(11, 94, 215, 0.10);
+      color: #15315b;
+      border-color: rgba(11, 94, 215, 0.16);
+    }
+
+    .banner.success {
+      background: rgba(22, 124, 77, 0.10);
+      color: #134f37;
+      border-color: rgba(22, 124, 77, 0.16);
+    }
+
+    .banner.error {
+      background: rgba(180, 35, 24, 0.10);
+      color: #7f1d1d;
+      border-color: rgba(180, 35, 24, 0.16);
+    }
+
+    .setup-error {
+      margin-top: 10px;
+      color: var(--danger);
+      line-height: 1.7;
+    }
+
+    .sortable-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .event-card {
+      display: grid;
+      grid-template-columns: 36px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .event-card.dragging {
+      opacity: 0.55;
+      border-style: dashed;
+    }
+
+    .event-card.drag-over {
+      box-shadow: 0 0 0 3px rgba(15,118,110,0.15) inset;
+    }
+
+    .drag-handle {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(23,32,51,0.06);
+      color: var(--muted);
+      font-weight: 900;
+      font-size: 1rem;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .event-main {
+      min-width: 0;
+    }
+
+    .event-title {
+      margin: 0;
+      font-weight: 800;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .event-meta {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .move-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .move-btn {
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      font-weight: 900;
+    }
+
+    .question-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .prompt {
+      margin: 0;
+      font-size: 1.08rem;
+      line-height: 1.7;
+      font-weight: 800;
+    }
+
+    .subprompt {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .answer-panel {
+      border-left: 6px solid transparent;
+      padding: 16px;
+    }
+
+    .answer-panel.correct { border-left-color: var(--success); }
+    .answer-panel.wrong { border-left-color: var(--danger); }
+
+    .answer-title {
+      margin: 0 0 8px;
+      font-size: 1.06rem;
+      font-weight: 900;
+    }
+
+    .answer-summary {
+      margin: 0;
+      line-height: 1.7;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .timeline-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(23, 32, 51, 0.04);
+      border: 1px solid rgba(23, 32, 51, 0.06);
+    }
+
+    .timeline-position {
+      flex: 0 0 70px;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .position-result {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 5px;
+      padding: 4px 7px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      line-height: 1.1;
+      background: rgba(23, 32, 51, 0.06);
+      color: var(--muted);
+    }
+
+    .timeline-item.order-good .position-result {
+      background: rgba(22, 124, 77, 0.13);
+      color: var(--success);
+    }
+
+    .timeline-item.order-bad .position-result {
+      background: rgba(180, 35, 24, 0.13);
+      color: var(--danger);
+    }
+
+    .timeline-item.order-good {
+      background: rgba(22, 124, 77, 0.10);
+      border-color: rgba(22, 124, 77, 0.28);
+    }
+
+    .timeline-item.order-good .timeline-year {
+      color: var(--success);
+    }
+
+    .timeline-item.order-bad {
+      background: rgba(180, 35, 24, 0.11);
+      border-color: rgba(180, 35, 24, 0.30);
+    }
+
+    .timeline-item.order-bad .timeline-year {
+      color: var(--danger);
+    }
+
+    .timeline-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+
+    .legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: rgba(23, 32, 51, 0.05);
+      border: 1px solid rgba(23, 32, 51, 0.08);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .legend-dot.good { background: var(--success); }
+    .legend-dot.bad { background: var(--danger); }
+
+    .timeline-year {
+      flex: 0 0 auto;
+      min-width: 96px;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .timeline-name {
+      font-weight: 700;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    .timeline-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .mini-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: rgba(11, 94, 215, 0.08);
+      color: #15315b;
+    }
+
+    .result-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-card {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.90);
+      border: 1px solid var(--line);
+    }
+
+    .result-card.correct {
+      border-color: rgba(22, 124, 77, 0.26);
+      box-shadow: 0 0 0 2px rgba(22, 124, 77, 0.06) inset;
+    }
+
+    .result-card.wrong {
+      border-color: rgba(180, 35, 24, 0.26);
+      box-shadow: 0 0 0 2px rgba(180, 35, 24, 0.06) inset;
+    }
+
+    .result-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .result-name {
+      margin: 0;
+      font-weight: 900;
+      line-height: 1.5;
+    }
+
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .result-badge.good {
+      background: rgba(22,124,77,0.10);
+      color: var(--success);
+    }
+
+    .result-badge.bad {
+      background: rgba(180,35,24,0.10);
+      color: var(--danger);
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.84);
+      padding: 14px;
+    }
+
+    .history-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .history-title {
+      margin: 0;
+      font-weight: 900;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .history-summary {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .history-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .analysis-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .analysis-item {
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      padding: 14px;
+      background: rgba(255,255,255,0.86);
+      line-height: 1.7;
+    }
+
+    .analysis-item strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .empty-state {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px dashed rgba(23, 32, 51, 0.16);
+      color: var(--muted);
+      line-height: 1.7;
+      background: rgba(255,255,255,0.56);
+    }
+
+    .screen-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .screen-title {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 900;
+    }
+
+    .screen-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .mini-note {
+      font-size: 0.86rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 840px) {
+      .hero-grid,
+      .grid-3,
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app-shell {
+        width: min(100vw - 16px, 960px);
+        padding-top: 12px;
+      }
+
+      .topbar,
+      .screen-header {
+        flex-direction: column;
+      }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
+
+      .hero-grid,
+      .grid-3,
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 16px;
+        border-radius: 20px;
+      }
+
+      .event-card {
+        grid-template-columns: 28px 1fr;
+        align-items: start;
+      }
+
+      .move-controls {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+      }
+
+      .drag-handle {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+      }
+
+      .move-btn {
+        width: 48px;
+        height: 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <p class="eyebrow">CSVで学ぶ時系列トレーニング ver1.1.4</p>
+        <h1 class="brand">歴史並び替えトレーニング</h1>
+        <p class="brand-sub">CSVを読み込んで、単年イベント・期間イベントを古い順に並び替える練習をします。スマホでの操作を最優先にしています。</p>
+      </div>
+      <div class="top-actions">
+        <span id="csvPresenceBadge" class="status-pill">CSV: 未読み込み</span>
+        <span id="statsPresenceBadge" class="status-pill">成績: 0件</span>
+      </div>
+    </header>
+
+    <div id="banner" class="banner info hidden" role="status" aria-live="polite"></div>
+
+    <main>
+      <section id="homeScreen" class="screen">
+        <section class="card hero">
+          <div class="hero-grid">
+            <div>
+              <p class="eyebrow">はじめに</p>
+              <h2 style="margin:0 0 8px;font-size:1.45rem;line-height:1.35;">読み込んだCSVを使って、年代順の並び替えをトレーニングします。</h2>
+              <p class="lead">サンプルデータでもすぐに試せます。CSVは localStorage に保存されるので、次回起動時にも復元できます。</p>
+              <div class="hero-actions" style="margin-top:16px;">
+                <button id="openSetupBtn" class="primary large-btn">並び替え問題を開始</button>
+                <button id="loadSampleBtn" class="secondary large-btn">サンプルデータで始める</button>
+              </div>
+            </div>
+            <div class="card" style="margin:0;background:rgba(255,255,255,0.78);">
+              <h3>このアプリでできること</h3>
+              <div class="mini-note">
+                <p>・CSVのアップロードと保存</p>
+                <p>・地域 / 分類での絞り込み</p>
+                <p>・完全ランダム / 関連性重視の出題</p>
+                <p>・成績保存と苦手分析</p>
+                <p>・間違えた問題の復習</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2>CSVアップロード</h2>
+            <span id="csvLoadState" class="info-pill">未読み込み</span>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="csvFileInput">CSVファイルを選択</label>
+              <input id="csvFileInput" type="file" accept=".csv,text/csv">
+              <div class="mini-note">ヘッダー行は「出来事,年代,地域,分類」を基本にしています。列名の揺れにも少し対応しています。</div>
+            </div>
+            <div class="input-row">
+              <button id="clearCsvBtn" class="danger large-btn">保存済みCSVデータを削除</button>
+              <button id="refreshHomeBtn" class="ghost large-btn">表示を更新</button>
+            </div>
+          </div>
+          <div id="csvInfo" class="grid-3" style="margin-top:14px;"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2>これまでの成績</h2>
+            <button id="resetStatsBtn" class="danger">成績リセット</button>
+          </div>
+          <div id="homeStatsGrid" class="stats-grid"></div>
+          <div class="grid-2" style="margin-top:14px;">
+            <div>
+              <h3>地域別正答率</h3>
+              <div id="homeRegionStats" class="analysis-list"></div>
+            </div>
+            <div>
+              <h3>分類別正答率</h3>
+              <div id="homeCategoryStats" class="analysis-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2>間違えた問題一覧</h2>
+            <span class="small muted">最新20件のみ表示・復習はここから開始</span>
+          </div>
+          <div id="homeWrongList" class="result-list"></div>
+        </section>
+      </section>
+
+      <section id="setupScreen" class="screen hidden">
+        <div class="screen-header">
+          <div>
+            <h2 class="screen-title">問題設定</h2>
+            <p class="screen-subtitle">条件を選んで、出題セットを作成します。</p>
+          </div>
+          <div class="split-actions">
+            <button id="backToHomeFromSetupBtn" class="secondary">ホームへ戻る</button>
+            <button id="startPracticeBtn" class="primary large-btn">出題開始</button>
+          </div>
+        </div>
+
+        <section class="card">
+          <h2>1. 出題条件</h2>
+          <div class="grid-2">
+            <div class="field">
+              <label for="questionCountInput">出題問題数</label>
+              <input id="questionCountInput" type="number" min="1" step="1" value="10" inputmode="numeric">
+              <div class="mini-note">1問以上で入力してください。</div>
+            </div>
+            <div class="field">
+              <label for="sortCountSelect">1問あたりの並び替え件数</label>
+              <select id="sortCountSelect">
+                <option value="3">3件</option>
+                <option value="4" selected>4件</option>
+                <option value="5">5件</option>
+                <option value="6">6件</option>
+              </select>
+              <div class="mini-note">3〜6件で選べます。デフォルトは4件です。</div>
+            </div>
+          </div>
+          <div id="setupValidation" class="setup-error" aria-live="polite"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2>2. 地域</h2>
+            <div class="split-actions">
+              <button id="regionSelectAllBtn" class="secondary">すべて選択</button>
+              <button id="regionClearBtn" class="ghost">すべて解除</button>
+            </div>
+          </div>
+          <div id="regionOptions" class="chip-grid"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2>3. 分類</h2>
+            <div class="split-actions">
+              <button id="categorySelectAllBtn" class="secondary">すべて選択</button>
+              <button id="categoryClearBtn" class="ghost">すべて解除</button>
+            </div>
+          </div>
+          <div id="categoryOptions" class="chip-grid"></div>
+        </section>
+
+        <section class="card">
+          <h2>4. 出題方法</h2>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input type="radio" name="relationMode" value="random">
+              <span>
+                <strong>完全ランダム</strong>
+                <span class="muted">選択条件に合う出来事からランダムに抽出します。</span>
+              </span>
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="relationMode" value="grouped">
+              <span>
+                <strong>関連性のあるものをまとめて</strong>
+                <span class="muted">地域または分類が近い出来事をできるだけまとめて出題します。</span>
+              </span>
+            </label>
+          </div>
+        </section>
+      </section>
+
+      <section id="gameScreen" class="screen hidden">
+        <div class="screen-header">
+          <div>
+            <h2 class="screen-title" id="gameProgress">第1問 / 全1問</h2>
+            <p class="screen-subtitle" id="gameMetaLine">古い順に並び替えてください。</p>
+          </div>
+          <div class="split-actions">
+            <button id="gameHomeBtn" class="secondary">ホームへ戻る</button>
+          </div>
+        </div>
+
+        <section class="card">
+          <div class="question-meta" id="questionMetaPills"></div>
+          <p class="prompt" id="questionPrompt">次の出来事を古い順に並び替えてください。</p>
+          <p class="subprompt" id="questionSubPrompt">年代が小さいほど古いです。ドラッグと上下ボタンの両方に対応しています。</p>
+          <div id="sortableList" class="sortable-list" aria-label="並び替え対象"></div>
+          <div class="action-row" style="margin-top:14px;">
+            <button id="judgeBtn" class="primary large-btn">並び替え完了</button>
+            <button id="resetOrderBtn" class="secondary large-btn">順番を戻す</button>
+          </div>
+        </section>
+
+        <section id="answerPanelWrap" class="card answer-panel hidden" aria-live="polite"></section>
+
+        <div id="nextActionRow" class="action-row hidden">
+          <button id="nextQuestionBtn" class="primary large-btn">次の問題へ</button>
+        </div>
+      </section>
+
+      <section id="resultScreen" class="screen hidden">
+        <div class="screen-header">
+          <div>
+            <h2 class="screen-title">結果画面</h2>
+            <p class="screen-subtitle">今回の成績と、これまでの履歴をまとめて表示します。</p>
+          </div>
+          <div class="split-actions">
+            <button id="resultHomeBtn" class="primary large-btn">ホームへ戻る</button>
+          </div>
+        </div>
+
+        <section class="card">
+          <h2>今回の結果</h2>
+          <div id="resultSummaryGrid" class="stats-grid"></div>
+        </section>
+
+        <section class="card">
+          <h2>苦手傾向の分析</h2>
+          <div id="analysisList" class="analysis-list"></div>
+        </section>
+
+        <section class="card">
+          <h2>問題ごとの結果</h2>
+          <div id="resultQuestionList" class="result-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2>全体成績の確認</h2>
+            <span class="small muted">localStorage の累積データです</span>
+          </div>
+          <div id="resultStatsGrid" class="grid-2"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const STORAGE_KEYS = {
+        csv: 'timeline_sort_csv_data',
+        stats: 'timeline_sort_stats',
+        settings: 'timeline_sort_settings'
+      };
+
+      const MAX_WRONG_HISTORY = 200;
+      const MAX_HOME_WRONGS = 20;
+
+      const SAMPLE_CSV = `出来事,年代,開始年,終了年,地域,分類
+秦の中国統一,-221,,,中国,政治
+キリスト教の成立,30,,,地中海,宗教
+イスラーム教の成立,610,,,西アジア,宗教
+白村江の戦い,663,,,日本,戦争
+平安京遷都,794,,,日本,政治
+十字軍,,1096,1291,ヨーロッパ,戦争
+鎌倉幕府,,1185,1333,日本,政治
+モンゴル帝国,,1206,1368,中央アジア,政治
+ルネサンス,,1400,1600,ヨーロッパ,文化
+応仁の乱,,1467,1477,日本,戦争
+宗教改革の開始,1517,,,ヨーロッパ,宗教
+アメリカ独立宣言,1776,,,北アメリカ,政治
+フランス革命,,1789,1799,ヨーロッパ,政治
+第一次世界大戦,,1914,1918,ヨーロッパ,戦争
+第二次世界大戦,,1939,1945,世界,戦争`;
+
+      const els = {
+        banner: document.getElementById('banner'),
+        csvPresenceBadge: document.getElementById('csvPresenceBadge'),
+        statsPresenceBadge: document.getElementById('statsPresenceBadge'),
+        homeScreen: document.getElementById('homeScreen'),
+        setupScreen: document.getElementById('setupScreen'),
+        gameScreen: document.getElementById('gameScreen'),
+        resultScreen: document.getElementById('resultScreen'),
+        openSetupBtn: document.getElementById('openSetupBtn'),
+        loadSampleBtn: document.getElementById('loadSampleBtn'),
+        clearCsvBtn: document.getElementById('clearCsvBtn'),
+        refreshHomeBtn: document.getElementById('refreshHomeBtn'),
+        resetStatsBtn: document.getElementById('resetStatsBtn'),
+        csvFileInput: document.getElementById('csvFileInput'),
+        csvLoadState: document.getElementById('csvLoadState'),
+        csvInfo: document.getElementById('csvInfo'),
+        homeStatsGrid: document.getElementById('homeStatsGrid'),
+        homeRegionStats: document.getElementById('homeRegionStats'),
+        homeCategoryStats: document.getElementById('homeCategoryStats'),
+        homeWrongList: document.getElementById('homeWrongList'),
+        backToHomeFromSetupBtn: document.getElementById('backToHomeFromSetupBtn'),
+        startPracticeBtn: document.getElementById('startPracticeBtn'),
+        questionCountInput: document.getElementById('questionCountInput'),
+        sortCountSelect: document.getElementById('sortCountSelect'),
+        setupValidation: document.getElementById('setupValidation'),
+        regionOptions: document.getElementById('regionOptions'),
+        categoryOptions: document.getElementById('categoryOptions'),
+        regionSelectAllBtn: document.getElementById('regionSelectAllBtn'),
+        regionClearBtn: document.getElementById('regionClearBtn'),
+        categorySelectAllBtn: document.getElementById('categorySelectAllBtn'),
+        categoryClearBtn: document.getElementById('categoryClearBtn'),
+        gameProgress: document.getElementById('gameProgress'),
+        gameMetaLine: document.getElementById('gameMetaLine'),
+        questionMetaPills: document.getElementById('questionMetaPills'),
+        questionPrompt: document.getElementById('questionPrompt'),
+        questionSubPrompt: document.getElementById('questionSubPrompt'),
+        sortableList: document.getElementById('sortableList'),
+        judgeBtn: document.getElementById('judgeBtn'),
+        resetOrderBtn: document.getElementById('resetOrderBtn'),
+        gameHomeBtn: document.getElementById('gameHomeBtn'),
+        answerPanelWrap: document.getElementById('answerPanelWrap'),
+        nextActionRow: document.getElementById('nextActionRow'),
+        nextQuestionBtn: document.getElementById('nextQuestionBtn'),
+        resultHomeBtn: document.getElementById('resultHomeBtn'),
+        resultSummaryGrid: document.getElementById('resultSummaryGrid'),
+        analysisList: document.getElementById('analysisList'),
+        resultQuestionList: document.getElementById('resultQuestionList'),
+        resultStatsGrid: document.getElementById('resultStatsGrid')
+      };
+
+      const state = {
+        csvBundle: null,
+        stats: loadStats(),
+        settings: loadSettings(),
+        session: null,
+        bannerTimer: null
+      };
+
+      // --- Utilities ------------------------------------------------------
+
+      function $(id) {
+        return document.getElementById(id);
+      }
+
+      function cloneEvent(event) {
+        return {
+          id: event.id,
+          event: event.event,
+          year: Number(event.year),
+          startYear: Number.isFinite(Number(event.startYear)) ? Number(event.startYear) : Number(event.year),
+          endYear: Number.isFinite(Number(event.endYear)) ? Number(event.endYear) : null,
+          isPeriod: event.isPeriod === true,
+          region: event.region,
+          category: event.category,
+          sourceRow: event.sourceRow
+        };
+      }
+
+      function normalizeText(value) {
+        return String(value ?? '').normalize('NFKC').trim();
+      }
+
+      function normalizeHeader(value) {
+        return normalizeText(value).replace(/\s+/g, '');
+      }
+
+      function formatNumber(value) {
+        return new Intl.NumberFormat('ja-JP').format(value || 0);
+      }
+
+      function formatPercent(numerator, denominator) {
+        if (!denominator) return '0.0%';
+        return `${(numerator / denominator * 100).toFixed(1)}%`;
+      }
+
+      function formatYear(year) {
+        if (!Number.isFinite(year)) return '年代不明';
+        return year < 0 ? `紀元前${Math.abs(year)}年` : `${year}年`;
+      }
+
+      function getSortYear(event) {
+        const start = Number(event?.startYear);
+        if (Number.isFinite(start)) return start;
+        const year = Number(event?.year);
+        return Number.isFinite(year) ? year : NaN;
+      }
+
+      function isPeriodEvent(event) {
+        return event?.isPeriod === true && Number.isFinite(Number(event.startYear)) && Number.isFinite(Number(event.endYear));
+      }
+
+      function formatEventYearRange(event) {
+        if (isPeriodEvent(event)) {
+          return `${formatYear(Number(event.startYear))}〜${formatYear(Number(event.endYear))}`;
+        }
+        return formatYear(getSortYear(event));
+      }
+
+      function getEventEndYear(event) {
+        return isPeriodEvent(event) ? Number(event.endYear) : getSortYear(event);
+      }
+
+      function formatDateTime(timestamp) {
+        try {
+          return new Date(timestamp).toLocaleString('ja-JP', { hour12: false });
+        } catch {
+          return '';
+        }
+      }
+
+      function uniqueValues(values) {
+        return [...new Set(values.filter((value) => normalizeText(value) !== ''))];
+      }
+
+      function sortedUniqueValues(values) {
+        return uniqueValues(values).sort((a, b) => a.localeCompare(b, 'ja'));
+      }
+
+      function shuffle(array) {
+        const copy = array.slice();
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function safeJsonParse(raw, fallback) {
+        if (!raw) return fallback;
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return fallback;
+        }
+      }
+
+      function loadJson(key, fallback) {
+        try {
+          return safeJsonParse(localStorage.getItem(key), fallback);
+        } catch {
+          return fallback;
+        }
+      }
+
+      function saveJson(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+          return true;
+        } catch (error) {
+          console.warn('localStorage save failed:', error);
+          return false;
+        }
+      }
+
+      function setBanner(message, type = 'info') {
+        clearTimeout(state.bannerTimer);
+        els.banner.textContent = message;
+        els.banner.className = `banner ${type}`;
+        els.banner.classList.remove('hidden');
+        state.bannerTimer = setTimeout(() => {
+          els.banner.classList.add('hidden');
+        }, 4200);
+      }
+
+      function hideBanner() {
+        clearTimeout(state.bannerTimer);
+        els.banner.classList.add('hidden');
+      }
+
+      function showScreen(name) {
+        els.homeScreen.classList.toggle('hidden', name !== 'home');
+        els.setupScreen.classList.toggle('hidden', name !== 'setup');
+        els.gameScreen.classList.toggle('hidden', name !== 'game');
+        els.resultScreen.classList.toggle('hidden', name !== 'result');
+      }
+
+      function maybeTrimText(text, maxLength = 42) {
+        if (text.length <= maxLength) return text;
+        return `${text.slice(0, maxLength - 1)}…`;
+      }
+
+      function isSameYearOrder(userOrder) {
+        for (let i = 0; i < userOrder.length - 1; i++) {
+          if (getSortYear(userOrder[i]) > getSortYear(userOrder[i + 1])) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function sortEvents(items) {
+        return items.slice().sort((a, b) => {
+          const yearGap = getSortYear(a) - getSortYear(b);
+          if (yearGap !== 0) return yearGap;
+          return a.event.localeCompare(b.event, 'ja');
+        });
+      }
+
+      function eventOverlapsPeriod(event, periodEvent) {
+        if (!isPeriodEvent(periodEvent)) return false;
+        const eventStart = getSortYear(event);
+        const eventEnd = getEventEndYear(event);
+        const periodStart = Number(periodEvent.startYear);
+        const periodEnd = Number(periodEvent.endYear);
+        if (!Number.isFinite(eventStart) || !Number.isFinite(eventEnd)) return false;
+        if (event.id === periodEvent.id) return false;
+        return eventStart <= periodEnd && eventEnd >= periodStart;
+      }
+
+      function filterEventsOverlappingPeriod(events, periodEvent) {
+        return events.filter((event) => event.id === periodEvent.id || !eventOverlapsPeriod(event, periodEvent));
+      }
+
+      function createQuestionSignature(items) {
+        return items.map((item) => item.id).slice().sort().join('|');
+      }
+
+      function parseHistoricalYear(rawYear) {
+        let value = normalizeText(rawYear).replace(/,/g, '');
+        if (!value) return NaN;
+        let negative = false;
+
+        if (/^(紀元前|BC|BCE|前)/i.test(value)) {
+          negative = true;
+          value = value.replace(/^(紀元前|BC|BCE|前)/i, '');
+        }
+
+        value = value.replace(/年$/u, '').replace(/[＋+]/g, '').replace(/−|－/g, '-');
+        const year = Number(value);
+        if (!Number.isFinite(year)) return NaN;
+        return negative ? -Math.abs(year) : year;
+      }
+
+      function parseCsvText(text) {
+        const source = String(text ?? '').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const rows = [];
+        let row = [];
+        let cell = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < source.length; i++) {
+          const ch = source[i];
+          const next = source[i + 1];
+
+          if (inQuotes) {
+            if (ch === '"') {
+              if (next === '"') {
+                cell += '"';
+                i++;
+              } else {
+                inQuotes = false;
+              }
+            } else {
+              cell += ch;
+            }
+            continue;
+          }
+
+          if (ch === '"') {
+            inQuotes = true;
+            continue;
+          }
+
+          if (ch === ',') {
+            row.push(cell);
+            cell = '';
+            continue;
+          }
+
+          if (ch === '\n') {
+            row.push(cell);
+            if (row.some((value) => normalizeText(value) !== '')) rows.push(row);
+            row = [];
+            cell = '';
+            continue;
+          }
+
+          cell += ch;
+        }
+
+        row.push(cell);
+        if (row.some((value) => normalizeText(value) !== '')) rows.push(row);
+        return rows;
+      }
+
+      function resolveColumnIndices(headers) {
+        const normalized = headers.map(normalizeHeader);
+        const aliases = {
+          event: ['出来事', '事象', '名称', '項目', 'イベント', '出来事名', 'タイトル', 'event', 'title', 'name'],
+          year: ['年代', '年', '西暦', '発生年', 'year', 'date'],
+          startYear: ['開始年', '始年', '開始', 'startyear', 'start'],
+          endYear: ['終了年', '終年', '終了', 'endyear', 'end'],
+          region: ['地域', '場所', 'エリア', 'region', 'area'],
+          category: ['分類', '分野', 'カテゴリ', '種類', 'category', 'type']
+        };
+
+        const findIndex = (keys) => {
+          for (const key of keys) {
+            const normalizedKey = normalizeHeader(key);
+            const index = normalized.indexOf(normalizedKey);
+            if (index >= 0) return index;
+          }
+          return -1;
+        };
+
+        return {
+          event: findIndex(aliases.event),
+          year: findIndex(aliases.year),
+          startYear: findIndex(aliases.startYear),
+          endYear: findIndex(aliases.endYear),
+          region: findIndex(aliases.region),
+          category: findIndex(aliases.category)
+        };
+      }
+
+      function parseCsvBundle(csvText, sourceName) {
+        const rows = parseCsvText(csvText);
+        if (!rows.length) {
+          throw new Error('CSVが空です。');
+        }
+
+        const headers = rows[0].map((value) => normalizeText(value));
+        const columnMap = resolveColumnIndices(headers);
+        const hasYearColumn = columnMap.year >= 0;
+        const hasStartColumn = columnMap.startYear >= 0;
+        const hasEndColumn = columnMap.endYear >= 0;
+
+        if (columnMap.event < 0 || columnMap.region < 0 || columnMap.category < 0 || (!hasYearColumn && !hasStartColumn)) {
+          throw new Error('必須列「出来事」「年代 または 開始年」「地域」「分類」が見つかりません。');
+        }
+
+        const validRows = [];
+        let excludedCount = 0;
+        let invalidPeriodCount = 0;
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const event = normalizeText(row[columnMap.event]);
+          const rawYear = hasYearColumn ? row[columnMap.year] : '';
+          const rawStartYear = hasStartColumn ? row[columnMap.startYear] : '';
+          const rawEndYear = hasEndColumn ? row[columnMap.endYear] : '';
+          const year = parseHistoricalYear(rawYear);
+          const startYearValue = parseHistoricalYear(rawStartYear);
+          const endYearValue = parseHistoricalYear(rawEndYear);
+          const region = normalizeText(row[columnMap.region]) || '未設定';
+          const category = normalizeText(row[columnMap.category]) || '未設定';
+
+          if (!event) {
+            excludedCount++;
+            continue;
+          }
+
+          let startYear = NaN;
+          let endYear = null;
+          let isPeriod = false;
+
+          if (Number.isFinite(startYearValue) && Number.isFinite(endYearValue)) {
+            if (startYearValue > endYearValue) {
+              excludedCount++;
+              invalidPeriodCount++;
+              continue;
+            }
+            startYear = startYearValue;
+            endYear = endYearValue;
+            isPeriod = startYearValue !== endYearValue;
+          } else if (Number.isFinite(year)) {
+            startYear = year;
+          } else if (Number.isFinite(startYearValue)) {
+            startYear = startYearValue;
+          }
+
+          if (!Number.isFinite(startYear)) {
+            excludedCount++;
+            continue;
+          }
+
+          validRows.push({
+            id: `row-${i}-${event}`,
+            event,
+            year: startYear,
+            startYear,
+            endYear: isPeriod ? endYear : null,
+            isPeriod,
+            region,
+            category,
+            sourceRow: i + 1
+          });
+        }
+
+        if (!validRows.length) {
+          throw new Error('読み込める行がありませんでした。年代または開始年が数値の行を含めてください。');
+        }
+
+        const singleCount = validRows.filter((item) => !isPeriodEvent(item)).length;
+        const periodCount = validRows.filter(isPeriodEvent).length;
+        const summary = {
+          inputCount: rows.length - 1,
+          validCount: validRows.length,
+          excludedCount,
+          invalidPeriodCount,
+          singleCount,
+          periodCount,
+          periodRatio: validRows.length ? periodCount / validRows.length : 0,
+          regionCount: sortedUniqueValues(validRows.map((item) => item.region)).length,
+          categoryCount: sortedUniqueValues(validRows.map((item) => item.category)).length
+        };
+
+        return {
+          sourceName,
+          importedAt: Date.now(),
+          rawText: csvText,
+          rows: validRows,
+          summary
+        };
+      }
+
+      function loadStats() {
+        const raw = loadJson(STORAGE_KEYS.stats, null);
+        const base = {
+          totalQuestions: 0,
+          totalCorrect: 0,
+          region: {},
+          category: {},
+          wrongHistory: []
+        };
+
+        if (!raw || typeof raw !== 'object') return base;
+
+        base.totalQuestions = Number(raw.totalQuestions) || 0;
+        base.totalCorrect = Number(raw.totalCorrect) || 0;
+        base.region = normalizeBucketMap(raw.region);
+        base.category = normalizeBucketMap(raw.category);
+        base.wrongHistory = Array.isArray(raw.wrongHistory) ? raw.wrongHistory.map(normalizeWrongRecord).filter(Boolean) : [];
+        return base;
+      }
+
+      function normalizeBucketMap(raw) {
+        const result = {};
+        if (!raw || typeof raw !== 'object') return result;
+
+        for (const [key, value] of Object.entries(raw)) {
+          result[key] = {
+            questions: Number(value?.questions) || 0,
+            correct: Number(value?.correct) || 0
+          };
+        }
+        return result;
+      }
+
+      function normalizeEventRecord(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        const year = Number(raw.year);
+        const startYear = Number.isFinite(Number(raw.startYear)) ? Number(raw.startYear) : year;
+        const endYear = Number.isFinite(Number(raw.endYear)) ? Number(raw.endYear) : null;
+        const isPeriod = raw.isPeriod === true && Number.isFinite(startYear) && Number.isFinite(endYear) && startYear !== endYear;
+        if (!normalizeText(raw.event) || !Number.isFinite(startYear)) return null;
+        return {
+          id: String(raw.id || `${raw.event}-${startYear}`),
+          event: normalizeText(raw.event),
+          year: startYear,
+          startYear,
+          endYear: isPeriod ? endYear : null,
+          isPeriod,
+          region: normalizeText(raw.region) || '未設定',
+          category: normalizeText(raw.category) || '未設定',
+          sourceRow: Number(raw.sourceRow) || 0
+        };
+      }
+
+      function normalizeQuestionRecord(rawQuestion) {
+        if (!rawQuestion || typeof rawQuestion !== 'object') return null;
+        const items = Array.isArray(rawQuestion.items) ? rawQuestion.items.map(normalizeEventRecord).filter(Boolean) : [];
+        if (!items.length) return null;
+        return {
+          id: String(rawQuestion.id || `q-${Date.now()}`),
+          source: rawQuestion.source || 'practice',
+          prompt: normalizeText(rawQuestion.prompt) || '次の出来事を古い順に並び替えてください。',
+          subPrompt: normalizeText(rawQuestion.subPrompt) || '年代が小さいほど古いです。',
+          focus: rawQuestion.focus && typeof rawQuestion.focus === 'object' ? {
+            type: rawQuestion.focus.type === 'category' ? 'category' : 'region',
+            value: normalizeText(rawQuestion.focus.value)
+          } : null,
+          relationMode: rawQuestion.relationMode === 'grouped' ? 'grouped' : 'random',
+          items
+        };
+      }
+
+      function normalizeWrongRecord(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        const question = normalizeQuestionRecord(raw.question);
+        const userOrder = Array.isArray(raw.userOrder) ? raw.userOrder.map(normalizeEventRecord).filter(Boolean) : [];
+        const correctOrder = Array.isArray(raw.correctOrder) ? raw.correctOrder.map(normalizeEventRecord).filter(Boolean) : [];
+        if (!question || !userOrder.length || !correctOrder.length) return null;
+
+        return {
+          id: String(raw.id || `wrong-${Date.now()}`),
+          timestamp: Number(raw.timestamp) || Date.now(),
+          question,
+          userOrder,
+          correctOrder,
+          explanation: normalizeText(raw.explanation)
+        };
+      }
+
+      function loadSettings() {
+        const raw = loadJson(STORAGE_KEYS.settings, null);
+        const base = {
+          questionCount: 10,
+          sortCount: 4,
+          relationMode: 'random',
+          selectedRegions: [],
+          selectedCategories: []
+        };
+
+        if (!raw || typeof raw !== 'object') return base;
+
+        base.questionCount = Math.max(1, Number(raw.questionCount) || 10);
+        base.sortCount = [3, 4, 5, 6].includes(Number(raw.sortCount)) ? Number(raw.sortCount) : 4;
+        base.relationMode = raw.relationMode === 'grouped' ? 'grouped' : 'random';
+        base.selectedRegions = Array.isArray(raw.selectedRegions) ? raw.selectedRegions.map(normalizeText).filter(Boolean) : [];
+        base.selectedCategories = Array.isArray(raw.selectedCategories) ? raw.selectedCategories.map(normalizeText).filter(Boolean) : [];
+        return base;
+      }
+
+      function saveStats() {
+        saveJson(STORAGE_KEYS.stats, state.stats);
+        refreshBadges();
+      }
+
+      function saveSettings() {
+        saveJson(STORAGE_KEYS.settings, state.settings);
+      }
+
+      function saveCsvBundle() {
+        if (state.csvBundle) {
+          saveJson(STORAGE_KEYS.csv, state.csvBundle);
+        }
+        refreshBadges();
+      }
+
+      function clearCsvStorage() {
+        try {
+          localStorage.removeItem(STORAGE_KEYS.csv);
+        } catch {}
+      }
+
+      function clearStatsStorage() {
+        try {
+          localStorage.removeItem(STORAGE_KEYS.stats);
+        } catch {}
+      }
+
+      function refreshBadges() {
+        els.csvPresenceBadge.textContent = state.csvBundle ? 'CSV: 保存あり' : 'CSV: 未読み込み';
+        els.statsPresenceBadge.textContent = `成績: ${formatNumber(state.stats.totalQuestions)}件`;
+      }
+
+      function getCurrentCsvRows() {
+        return state.csvBundle ? state.csvBundle.rows.slice() : [];
+      }
+
+      function getSelectedRegions() {
+        return state.settings.selectedRegions.slice();
+      }
+
+      function getSelectedCategories() {
+        return state.settings.selectedCategories.slice();
+      }
+
+      function getFilteredRows() {
+        const rows = getCurrentCsvRows();
+        const regionSet = new Set(getSelectedRegions());
+        const categorySet = new Set(getSelectedCategories());
+        return rows.filter((row) => regionSet.has(row.region) && categorySet.has(row.category));
+      }
+
+      function syncSelectionsToBundle(bundle) {
+        if (!bundle) return;
+        const allRegions = sortedUniqueValues(bundle.rows.map((row) => row.region));
+        const allCategories = sortedUniqueValues(bundle.rows.map((row) => row.category));
+
+        state.settings.selectedRegions = state.settings.selectedRegions.filter((value) => allRegions.includes(value));
+        state.settings.selectedCategories = state.settings.selectedCategories.filter((value) => allCategories.includes(value));
+
+        if (!state.settings.selectedRegions.length) {
+          state.settings.selectedRegions = allRegions.slice();
+        }
+
+        if (!state.settings.selectedCategories.length) {
+          state.settings.selectedCategories = allCategories.slice();
+        }
+      }
+
+      function getSortedBuckets(bucketMap) {
+        return Object.entries(bucketMap)
+          .map(([name, data]) => {
+            const questions = Number(data.questions) || 0;
+            const correct = Number(data.correct) || 0;
+            return {
+              name,
+              questions,
+              correct,
+              accuracy: questions ? correct / questions : 0
+            };
+          })
+          .sort((a, b) => {
+            if (a.questions !== b.questions) return b.questions - a.questions;
+            if (a.accuracy !== b.accuracy) return a.accuracy - b.accuracy;
+            return a.name.localeCompare(b.name, 'ja');
+          });
+      }
+
+      function bucketLine(bucket) {
+        return `${formatNumber(bucket.correct)} / ${formatNumber(bucket.questions)} 件 (${formatPercent(bucket.correct, bucket.questions)})`;
+      }
+
+      function renderBucketList(container, buckets, emptyText) {
+        if (!container) return;
+        if (!buckets.length) {
+          container.innerHTML = `<div class="empty-state">${emptyText}</div>`;
+          return;
+        }
+
+        container.innerHTML = buckets.map((bucket) => `
+          <div class="analysis-item">
+            <strong>${escapeHtml(bucket.name)}</strong>
+            ${formatNumber(bucket.correct)} / ${formatNumber(bucket.questions)} 件
+            <span class="muted">(${formatPercent(bucket.correct, bucket.questions)})</span>
+          </div>
+        `).join('');
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function renderInfoCards(bundle) {
+        if (!bundle) {
+          els.csvLoadState.textContent = '未読み込み';
+          els.csvInfo.innerHTML = `
+            <div class="stat"><div class="label">読み込み状況</div><div class="value">未読み込み</div><div class="sub">サンプルデータかCSVを読み込んでください。</div></div>
+            <div class="stat"><div class="label">次のアクション</div><div class="value">開始準備</div><div class="sub">CSVが入ると問題設定へ進めます。</div></div>
+            <div class="stat"><div class="label">保存状況</div><div class="value">0件</div><div class="sub">localStorageにCSVは保存されていません。</div></div>
+          `;
+          return;
+        }
+
+        const summary = bundle.summary;
+        els.csvLoadState.textContent = '読み込み済み';
+        els.csvInfo.innerHTML = `
+          <div class="stat"><div class="label">ファイル名</div><div class="value">${escapeHtml(bundle.sourceName || 'CSV')}</div><div class="sub">読み込み日時: ${escapeHtml(formatDateTime(bundle.importedAt))}</div></div>
+          <div class="stat"><div class="label">有効件数 / 除外件数</div><div class="value">${formatNumber(summary.validCount)} / ${formatNumber(summary.excludedCount)}</div><div class="sub">入力行数: ${formatNumber(summary.inputCount)}${summary.invalidPeriodCount ? `・期間不正: ${formatNumber(summary.invalidPeriodCount)}` : ''}</div></div>
+          <div class="stat"><div class="label">単年 / 期間</div><div class="value">${formatNumber(summary.singleCount || 0)} / ${formatNumber(summary.periodCount || 0)}</div><div class="sub">期間イベント割合: ${formatPercent(summary.periodCount || 0, summary.validCount || 0)}</div></div>
+          <div class="stat"><div class="label">地域数 / 分類数</div><div class="value">${formatNumber(summary.regionCount)} / ${formatNumber(summary.categoryCount)}</div><div class="sub">保存先: localStorage</div></div>
+        `;
+      }
+
+      function renderHomeStats() {
+        const overallAccuracy = formatPercent(state.stats.totalCorrect, state.stats.totalQuestions);
+        const wrongCount = state.stats.wrongHistory.length;
+        const regionBuckets = getSortedBuckets(state.stats.region);
+        const categoryBuckets = getSortedBuckets(state.stats.category);
+
+        els.homeStatsGrid.innerHTML = `
+          <div class="stat"><div class="label">総出題数</div><div class="value">${formatNumber(state.stats.totalQuestions)}</div><div class="sub">積み重ねた問題数</div></div>
+          <div class="stat"><div class="label">総正解数</div><div class="value">${formatNumber(state.stats.totalCorrect)}</div><div class="sub">正しく並べられた回数</div></div>
+          <div class="stat"><div class="label">全体正答率</div><div class="value">${overallAccuracy}</div><div class="sub">総正解数 ÷ 総出題数</div></div>
+          <div class="stat"><div class="label">誤答履歴</div><div class="value">${formatNumber(wrongCount)}</div><div class="sub">最新20件を表示</div></div>
+        `;
+
+        renderBucketList(els.homeRegionStats, regionBuckets, 'まだ地域別の成績がありません。問題を解くとここに表示されます。');
+        renderBucketList(els.homeCategoryStats, categoryBuckets, 'まだ分類別の成績がありません。問題を解くとここに表示されます。');
+      }
+
+      function renderHomeWrongList() {
+        const history = state.stats.wrongHistory.slice(0, MAX_HOME_WRONGS);
+        if (!history.length) {
+          els.homeWrongList.innerHTML = '<div class="empty-state">まだ間違えた問題はありません。サンプルデータで試してみると流れをつかみやすいです。</div>';
+          return;
+        }
+
+        els.homeWrongList.innerHTML = history.map((record) => {
+          const questionText = record.question.items.map((item) => item.event).join(' / ');
+          const correctText = record.correctOrder.map((item) => `${item.event}（${formatEventYearRange(item)}）`).join(' → ');
+          const userText = record.userOrder.map((item) => `${item.event}（${formatEventYearRange(item)}）`).join(' → ');
+          return `
+            <article class="history-item">
+              <div class="history-top">
+                <h3 class="history-title">${escapeHtml(maybeTrimText(questionText, 60))}</h3>
+                <span class="status-pill">${escapeHtml(formatDateTime(record.timestamp))}</span>
+              </div>
+              <p class="history-summary">正しい順番: ${escapeHtml(correctText)}</p>
+              <p class="history-summary">あなたの順番: ${escapeHtml(userText)}</p>
+              <div class="history-actions">
+                <button class="secondary" data-action="review-history" data-history-id="${escapeHtml(record.id)}">復習する</button>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      function renderSetupScreen() {
+        const bundle = state.csvBundle;
+        const allRegions = bundle ? sortedUniqueValues(bundle.rows.map((row) => row.region)) : [];
+        const allCategories = bundle ? sortedUniqueValues(bundle.rows.map((row) => row.category)) : [];
+
+        const regionSelected = new Set(state.settings.selectedRegions);
+        const categorySelected = new Set(state.settings.selectedCategories);
+
+        els.questionCountInput.value = String(state.settings.questionCount || 10);
+        els.sortCountSelect.value = String(state.settings.sortCount || 4);
+        [...document.querySelectorAll('input[name="relationMode"]')].forEach((radio) => {
+          radio.checked = radio.value === state.settings.relationMode;
+        });
+
+        els.regionOptions.innerHTML = bundle && allRegions.length
+          ? allRegions.map((value) => `<button type="button" class="chip ${regionSelected.has(value) ? 'selected' : ''}" data-toggle="region" data-value="${escapeHtml(value)}">${escapeHtml(value)}</button>`).join('')
+          : '<div class="empty-state">CSVを読み込むと地域の一覧が表示されます。</div>';
+
+        els.categoryOptions.innerHTML = bundle && allCategories.length
+          ? allCategories.map((value) => `<button type="button" class="chip ${categorySelected.has(value) ? 'selected' : ''}" data-toggle="category" data-value="${escapeHtml(value)}">${escapeHtml(value)}</button>`).join('')
+          : '<div class="empty-state">CSVを読み込むと分類の一覧が表示されます。</div>';
+
+        renderSetupValidation();
+      }
+
+      function getCandidateRows() {
+        return getFilteredRows();
+      }
+
+      function renderSetupValidation(customMessage = '') {
+        const messages = [];
+
+        if (customMessage) messages.push(customMessage);
+        if (!state.csvBundle) {
+          messages.push('CSVがまだ読み込まれていません。サンプルデータを使うかCSVをアップロードしてください。');
+        }
+
+        const questionCount = Number(state.settings.questionCount);
+        if (!Number.isInteger(questionCount) || questionCount < 1) {
+          messages.push('出題問題数は1以上の整数で入力してください。');
+        }
+
+        const sortCount = Number(state.settings.sortCount);
+        if (![3, 4, 5, 6].includes(sortCount)) {
+          messages.push('1問あたりの並び替え件数は3〜6で選んでください。');
+        }
+
+        if (state.csvBundle) {
+          if (!state.settings.selectedRegions.length) {
+            messages.push('地域が1つも選択されていません。');
+          }
+          if (!state.settings.selectedCategories.length) {
+            messages.push('分類が1つも選択されていません。');
+          }
+
+          const candidateCount = getCandidateRows().length;
+          if (candidateCount < sortCount) {
+            messages.push(`選択条件に合う候補が ${candidateCount} 件しかないため、${sortCount} 件の並び替え問題を作れません。`);
+          }
+        }
+
+        let candidateInfoHtml = '';
+        if (state.csvBundle) {
+          const candidateRows = getCandidateRows();
+          const candidatePeriods = candidateRows.filter(isPeriodEvent).length;
+          const candidateSingles = candidateRows.length - candidatePeriods;
+          candidateInfoHtml = `
+            <div class="banner info" style="margin-top:10px;">
+              候補数：${formatNumber(candidateRows.length)}件 / 単年：${formatNumber(candidateSingles)}件 / 期間：${formatNumber(candidatePeriods)}件 / 期間割合：${formatPercent(candidatePeriods, candidateRows.length)}<br>
+              期間イベントを含む問題では、その期間内に含まれる出来事を同じ問題から除外します。期間イベントを使うかどうかは、候補内の期間イベント割合に応じて自動で判断されます。
+            </div>
+          `;
+        }
+
+        els.setupValidation.innerHTML = (messages.length
+          ? messages.map((message) => `<div>・${escapeHtml(message)}</div>`).join('')
+          : '<div class="status-pill">この条件で開始できます。</div>') + candidateInfoHtml;
+
+        els.startPracticeBtn.disabled = messages.some((message) => message.includes('できません') || message.includes('入力してください') || message.includes('選んでください') || message.includes('選択されていません') || message.includes('まだ読み込まれていません'));
+        return messages;
+      }
+
+      function setSelectedAll(type, values) {
+        if (type === 'region') {
+          state.settings.selectedRegions = values.slice();
+        } else {
+          state.settings.selectedCategories = values.slice();
+        }
+        saveSettings();
+        renderSetupScreen();
+      }
+
+      function clearSelected(type) {
+        if (type === 'region') {
+          state.settings.selectedRegions = [];
+        } else {
+          state.settings.selectedCategories = [];
+        }
+        saveSettings();
+        renderSetupScreen();
+      }
+
+      function toggleFilterValue(type, value) {
+        const target = type === 'region' ? state.settings.selectedRegions : state.settings.selectedCategories;
+        const index = target.indexOf(value);
+        if (index >= 0) {
+          target.splice(index, 1);
+        } else {
+          target.push(value);
+        }
+        saveSettings();
+        renderSetupScreen();
+      }
+
+      function getFocusSelection(rows, selectedRegions, selectedCategories) {
+        const regionPool = sortedUniqueValues(rows.map((row) => row.region).filter((value) => selectedRegions.includes(value)));
+        const categoryPool = sortedUniqueValues(rows.map((row) => row.category).filter((value) => selectedCategories.includes(value)));
+        const pools = [];
+        if (regionPool.length) pools.push({ type: 'region', values: regionPool });
+        if (categoryPool.length) pools.push({ type: 'category', values: categoryPool });
+        if (!pools.length) return null;
+        const chosenPool = pools[Math.floor(Math.random() * pools.length)];
+        const value = chosenPool.values[Math.floor(Math.random() * chosenPool.values.length)];
+        return { type: chosenPool.type, value };
+      }
+
+      function selectQuestionItems(pool, count, stateBag, focus, options = {}) {
+        const available = pool.slice();
+        const selected = [];
+
+        function score(item) {
+          const usage = stateBag.usage[item.id] || 0;
+          const recentIndex = stateBag.recentItemIds.lastIndexOf(item.id);
+          const recencyPenalty = recentIndex >= 0 ? ((stateBag.recentItemIds.length - recentIndex) / Math.max(1, stateBag.recentItemIds.length)) : 0;
+          let scoreValue = Math.random() * 1.4 - usage * 0.9 - recencyPenalty * 0.8;
+          if (focus && item[focus.type] === focus.value) scoreValue += 2.5;
+          if (options.preferPeriod && isPeriodEvent(item)) scoreValue += 1.2;
+          return scoreValue;
+        }
+
+        while (selected.length < count && available.length) {
+          const ranked = available
+            .map((item) => ({ item, score: score(item) }))
+            .sort((a, b) => b.score - a.score);
+          const picked = ranked[0].item;
+          selected.push(picked);
+          const index = available.findIndex((item) => item.id === picked.id);
+          available.splice(index, 1);
+        }
+
+        selected.forEach((item) => {
+          stateBag.usage[item.id] = (stateBag.usage[item.id] || 0) + 1;
+          stateBag.recentItemIds.push(item.id);
+        });
+        if (stateBag.recentItemIds.length > 20) {
+          stateBag.recentItemIds = stateBag.recentItemIds.slice(-20);
+        }
+        return selected;
+      }
+
+      function pickQuestionItemsWithoutPeriod(pool, sortCount, stateBag, focus) {
+        const singles = pool.filter((item) => !isPeriodEvent(item));
+        if (singles.length < sortCount) return [];
+        return selectQuestionItems(singles, sortCount, stateBag, focus);
+      }
+
+      function pickQuestionItemsWithPeriod(pool, sortCount, stateBag, focus) {
+        const periodPool = pool.filter(isPeriodEvent);
+        if (!periodPool.length) return [];
+        const [periodEvent] = selectQuestionItems(periodPool, 1, stateBag, focus, { preferPeriod: true });
+        if (!periodEvent) return [];
+        const filtered = filterEventsOverlappingPeriod(pool, periodEvent).filter((item) => item.id !== periodEvent.id);
+        const nonPeriodFiltered = filtered.filter((item) => !isPeriodEvent(item));
+        if (nonPeriodFiltered.length < sortCount - 1) return [];
+        const rest = selectQuestionItems(nonPeriodFiltered, sortCount - 1, stateBag, focus);
+        return [periodEvent, ...rest];
+      }
+
+      function makeQuestionFromItems(items, meta = {}) {
+        const selectedItems = items.map(cloneEvent);
+        return {
+          id: meta.id || `q-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          source: meta.source || 'practice',
+          prompt: meta.prompt || '次の出来事を古い順に並び替えてください。',
+          subPrompt: meta.subPrompt || '年代が小さいほど古いです。ドラッグと上下ボタンの両方に対応しています。',
+          relationMode: meta.relationMode === 'grouped' ? 'grouped' : 'random',
+          focus: meta.focus ? { type: meta.focus.type, value: meta.focus.value } : null,
+          items: selectedItems,
+          regions: sortedUniqueValues(selectedItems.map((item) => item.region)),
+          categories: sortedUniqueValues(selectedItems.map((item) => item.category))
+        };
+      }
+
+      function buildPracticeQuestions() {
+        const pool = getCandidateRows();
+        const questionCount = Number(state.settings.questionCount);
+        const sortCount = Number(state.settings.sortCount);
+        const questions = [];
+        const bag = { usage: {}, recentItemIds: [], recentSignatures: [] };
+        const periodCount = pool.filter(isPeriodEvent).length;
+        const periodRatio = pool.length ? periodCount / pool.length : 0;
+
+        for (let i = 0; i < questionCount; i++) {
+          const focus = state.settings.relationMode === 'grouped'
+            ? getFocusSelection(pool, state.settings.selectedRegions, state.settings.selectedCategories)
+            : null;
+
+          let chosen = [];
+          let signature = '';
+          let usedPeriod = false;
+
+          for (let attempt = 0; attempt < 8; attempt++) {
+            const usePeriodEvent = Math.random() < periodRatio;
+            chosen = usePeriodEvent
+              ? pickQuestionItemsWithPeriod(pool, sortCount, bag, focus)
+              : pickQuestionItemsWithoutPeriod(pool, sortCount, bag, focus);
+
+            if (!chosen.length && usePeriodEvent) {
+              chosen = pickQuestionItemsWithoutPeriod(pool, sortCount, bag, focus);
+            }
+            if (!chosen.length) {
+              chosen = selectQuestionItems(pool, sortCount, bag, focus);
+            }
+
+            usedPeriod = chosen.some(isPeriodEvent);
+            signature = createQuestionSignature(chosen);
+            if (chosen.length >= sortCount && (!bag.recentSignatures.includes(signature) || attempt === 7)) break;
+          }
+
+          bag.recentSignatures.push(signature);
+          if (bag.recentSignatures.length > 6) bag.recentSignatures = bag.recentSignatures.slice(-6);
+
+          const question = makeQuestionFromItems(chosen.slice(0, sortCount), {
+            source: 'practice',
+            relationMode: state.settings.relationMode,
+            focus,
+            prompt: focus
+              ? `${focus.type === 'region' ? `「${focus.value}」` : `「${focus.value}」`}を含む出来事が中心の問題です。古い順に並び替えてください。`
+              : '次の出来事を古い順に並び替えてください。',
+            subPrompt: usedPeriod
+              ? '期間イベントは開始年を基準に並べます。期間内に重なる出来事は同じ問題から除外しています。'
+              : '年代が小さいほど古いです。同年代同士の順序は入れ替わっても正解です。'
+          });
+
+          questions.push(question);
+        }
+
+        return questions;
+      }
+
+      function buildReviewQuestions(records) {
+        return records
+          .map((record) => {
+            const question = record.question || {};
+            return makeQuestionFromItems(question.items || [], {
+              source: 'review',
+              relationMode: question.relationMode || 'random',
+              focus: question.focus || null,
+              prompt: question.prompt || '次の出来事を古い順に並び替えてください。',
+              subPrompt: question.subPrompt || '年代が小さいほど古いです。'
+            });
+          })
+          .filter((question) => question.items.length >= 3);
+      }
+
+      function startSession(questions, mode, title = '') {
+        state.session = {
+          mode,
+          title,
+          questions,
+          index: 0,
+          results: [],
+          usage: {},
+          recentItemIds: [],
+          recentSignatures: [],
+          currentQuestion: null
+        };
+        prepareCurrentQuestion();
+        showScreen('game');
+        renderGameScreen();
+      }
+
+      function prepareCurrentQuestion() {
+        if (!state.session) return;
+        const current = state.session.questions[state.session.index];
+        if (!current) return;
+        state.session.currentQuestion = {
+          ...current,
+          correctOrder: sortEvents(current.items),
+          currentOrder: shuffle(current.items.map(cloneEvent)),
+          answerRevealed: false,
+          result: null
+        };
+      }
+
+      function updateCurrentQuestionOrder() {
+        if (!state.session?.currentQuestion) return;
+        state.session.currentQuestion.currentOrder = state.session.currentQuestion.currentOrder.map(cloneEvent);
+        renderGameList();
+      }
+
+      function moveCurrentItem(fromIndex, toIndex) {
+        const currentQuestion = state.session?.currentQuestion;
+        if (!currentQuestion || currentQuestion.answerRevealed) return;
+        const items = currentQuestion.currentOrder;
+        if (fromIndex < 0 || fromIndex >= items.length || toIndex < 0 || toIndex >= items.length || fromIndex === toIndex) return;
+        const [item] = items.splice(fromIndex, 1);
+        items.splice(toIndex, 0, item);
+        renderGameList();
+      }
+
+      function moveCurrentItemByDelta(index, delta) {
+        moveCurrentItem(index, index + delta);
+      }
+
+      function resetCurrentOrder() {
+        if (!state.session?.currentQuestion || state.session.currentQuestion.answerRevealed) return;
+        state.session.currentQuestion.currentOrder = shuffle(state.session.currentQuestion.items.map(cloneEvent));
+        renderGameList();
+      }
+
+      function findFirstInversion(order) {
+        for (let i = 0; i < order.length - 1; i++) {
+          if (getSortYear(order[i]) > getSortYear(order[i + 1])) {
+            return [order[i], order[i + 1], i];
+          }
+        }
+        return null;
+      }
+
+      function getUserPositionStatus(userOrder, correctOrder, index) {
+        const userItem = userOrder[index];
+        const correctItem = correctOrder[index];
+        if (!userItem || !correctItem) {
+          return { className: 'order-bad', label: '位置違い' };
+        }
+
+        // ver1.1.4: 学習者に分かりやすくするため、隣接関係ではなく
+        // 「この番号に入るべき出来事か」で色分けする。
+        // 同じ年代の出来事同士は順不同で正解扱いにする。
+        const sameItem = userItem.id === correctItem.id;
+        const sameYear = getSortYear(userItem) === getSortYear(correctItem);
+        return sameItem || sameYear
+          ? { className: 'order-good', label: '正しい位置' }
+          : { className: 'order-bad', label: '位置違い' };
+      }
+
+      function buildExplanation(question, userOrder, correctOrder) {
+        // ver1.1.4: 判定後の画面では文章解説を出さず、色分けで誤答箇所を示す。
+        // 履歴互換用に空文字を返す。
+        return '';
+      }
+
+      function updateStatsFromResult(question, result) {
+        state.stats.totalQuestions += 1;
+        if (result.isCorrect) {
+          state.stats.totalCorrect += 1;
+        }
+
+        const uniqueRegions = [...new Set(question.regions)];
+        const uniqueCategories = [...new Set(question.categories)];
+        for (const region of uniqueRegions) {
+          if (!state.stats.region[region]) state.stats.region[region] = { questions: 0, correct: 0 };
+          state.stats.region[region].questions += 1;
+          if (result.isCorrect) state.stats.region[region].correct += 1;
+        }
+
+        for (const category of uniqueCategories) {
+          if (!state.stats.category[category]) state.stats.category[category] = { questions: 0, correct: 0 };
+          state.stats.category[category].questions += 1;
+          if (result.isCorrect) state.stats.category[category].correct += 1;
+        }
+
+        if (!result.isCorrect) {
+          const wrongRecord = {
+            id: `wrong-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            timestamp: Date.now(),
+            question: {
+              ...question,
+              items: question.items.map(cloneEvent)
+            },
+            userOrder: result.userOrder.map(cloneEvent),
+            correctOrder: result.correctOrder.map(cloneEvent),
+            explanation: result.explanation
+          };
+          state.stats.wrongHistory.unshift(wrongRecord);
+          state.stats.wrongHistory = state.stats.wrongHistory.slice(0, MAX_WRONG_HISTORY);
+        }
+
+        saveStats();
+      }
+
+      function evaluateCurrentQuestion() {
+        const currentQuestion = state.session?.currentQuestion;
+        if (!currentQuestion || currentQuestion.answerRevealed) return;
+
+        const userOrder = currentQuestion.currentOrder.map(cloneEvent);
+        const correctOrder = currentQuestion.correctOrder.map(cloneEvent);
+        const isCorrect = isSameYearOrder(userOrder);
+        const explanation = isCorrect ? buildExplanation(currentQuestion, userOrder, correctOrder) : buildExplanation(currentQuestion, userOrder, correctOrder);
+
+        currentQuestion.answerRevealed = true;
+        currentQuestion.result = {
+          isCorrect,
+          userOrder,
+          correctOrder,
+          explanation,
+          timestamp: Date.now()
+        };
+
+        state.session.results.push({
+          question: currentQuestion,
+          isCorrect,
+          userOrder,
+          correctOrder,
+          explanation,
+          timestamp: Date.now()
+        });
+
+        updateStatsFromResult(currentQuestion, currentQuestion.result);
+        renderGameScreen();
+      }
+
+      function finalizeSessionIfNeeded() {
+        if (!state.session) return;
+        if (state.session.index < state.session.questions.length - 1) {
+          return;
+        }
+        showScreen('result');
+        renderResultScreen();
+      }
+
+      function goToNextQuestion() {
+        if (!state.session) return;
+        if (state.session.index < state.session.questions.length - 1) {
+          state.session.index += 1;
+          prepareCurrentQuestion();
+          renderGameScreen();
+        } else {
+          showScreen('result');
+          renderResultScreen();
+        }
+      }
+
+      function startPracticeFlow() {
+        const validationMessages = renderSetupValidation();
+        if (validationMessages.length) {
+          setBanner('条件を確認してください。', 'error');
+          return;
+        }
+
+        const questions = buildPracticeQuestions();
+        startSession(questions, 'practice');
+        setBanner('問題を開始しました。', 'success');
+      }
+
+      function startReviewFlow(records, title) {
+        const questions = buildReviewQuestions(records);
+        if (!questions.length) {
+          setBanner('復習できる問題がありません。', 'error');
+          return;
+        }
+        startSession(questions, 'review', title || '復習');
+        setBanner('復習モードを開始しました。', 'success');
+      }
+
+      function reviewFromHistoryId(historyId) {
+        const record = state.stats.wrongHistory.find((item) => item.id === historyId);
+        if (!record) {
+          setBanner('復習対象が見つかりませんでした。', 'error');
+          return;
+        }
+        startReviewFlow([record], '復習');
+      }
+
+      function reviewCurrentSessionWrongQuestions() {
+        if (!state.session) return;
+        const wrongRecords = state.session.results.filter((result) => !result.isCorrect).map((result) => ({
+          question: result.question
+        }));
+        if (!wrongRecords.length) {
+          setBanner('今回のセッションには間違いがありません。', 'info');
+          return;
+        }
+        startReviewFlow(wrongRecords, '今回の間違い復習');
+      }
+
+      function clearCsvBundle() {
+        state.csvBundle = null;
+        clearCsvStorage();
+        renderAllHome();
+        renderSetupScreen();
+        setBanner('CSVデータを削除しました。', 'success');
+      }
+
+      function clearAllStats() {
+        state.stats = loadStats();
+        state.stats.totalQuestions = 0;
+        state.stats.totalCorrect = 0;
+        state.stats.region = {};
+        state.stats.category = {};
+        state.stats.wrongHistory = [];
+        clearStatsStorage();
+        saveStats();
+        renderAllHome();
+        renderResultScreen();
+        setBanner('成績データをリセットしました。', 'success');
+      }
+
+      async function loadCsvFromFile(file) {
+        if (!file) return;
+        try {
+          const text = await file.text();
+          loadCsvFromText(text, file.name);
+        } catch (error) {
+          console.error(error);
+          setBanner('CSVの読み込みに失敗しました。', 'error');
+        } finally {
+          els.csvFileInput.value = '';
+        }
+      }
+
+      function loadCsvFromText(text, sourceName) {
+        try {
+          const bundle = parseCsvBundle(text, sourceName || 'CSV');
+          state.csvBundle = bundle;
+          syncSelectionsToBundle(bundle);
+          saveCsvBundle();
+          saveSettings();
+          renderAllHome();
+          renderSetupScreen();
+          showScreen('home');
+          setBanner(`CSVを読み込みました。${formatNumber(bundle.summary.validCount)}件の有効データを保存しました。`, 'success');
+        } catch (error) {
+          console.error(error);
+          setBanner(error.message || 'CSVの読み込みに失敗しました。', 'error');
+        }
+      }
+
+      function loadSampleData() {
+        loadCsvFromText(SAMPLE_CSV, 'sample.csv');
+      }
+
+      function renderGameList() {
+        const currentQuestion = state.session?.currentQuestion;
+        if (!currentQuestion) return;
+
+        els.questionPrompt.textContent = currentQuestion.prompt;
+        els.questionSubPrompt.textContent = currentQuestion.subPrompt || '年代が小さいほど古いです。';
+        els.questionMetaPills.innerHTML = [
+          currentQuestion.relationMode === 'grouped' ? '<span class="status-pill">関連性重視</span>' : '<span class="status-pill">完全ランダム</span>',
+          currentQuestion.focus ? `<span class="info-pill">${escapeHtml(currentQuestion.focus.type === 'region' ? '地域' : '分類')}：${escapeHtml(currentQuestion.focus.value)}</span>` : '',
+          `<span class="info-pill">${formatNumber(currentQuestion.items.length)}件の出来事</span>`
+        ].filter(Boolean).join('');
+
+        els.sortableList.innerHTML = currentQuestion.currentOrder.map((item, index) => `
+          <article class="event-card ${currentQuestion.answerRevealed ? 'revealed' : ''}" draggable="${currentQuestion.answerRevealed ? 'false' : 'true'}" data-index="${index}" data-item-id="${escapeHtml(item.id)}">
+            <div class="drag-handle" aria-hidden="true">≡</div>
+            <div class="event-main">
+              <p class="event-title">${escapeHtml(item.event)}</p>
+              ${currentQuestion.answerRevealed ? `<div class="event-meta">${escapeHtml(formatEventYearRange(item))} ・ ${isPeriodEvent(item) ? '期間イベント ・ ' : ''}${escapeHtml(item.region)} ・ ${escapeHtml(item.category)}</div>` : ''}
+            </div>
+            <div class="move-controls">
+              <button type="button" class="move-btn" data-action="move-up" data-index="${index}" aria-label="上へ">↑</button>
+              <button type="button" class="move-btn" data-action="move-down" data-index="${index}" aria-label="下へ">↓</button>
+            </div>
+          </article>
+        `).join('');
+
+        els.judgeBtn.disabled = !!currentQuestion.answerRevealed;
+        els.resetOrderBtn.disabled = !!currentQuestion.answerRevealed;
+        renderAnswerPanel();
+        refreshGameButtons();
+      }
+
+      function refreshGameButtons() {
+        const currentQuestion = state.session?.currentQuestion;
+        const answerRevealed = !!currentQuestion?.answerRevealed;
+        els.nextActionRow.classList.toggle('hidden', !answerRevealed);
+      }
+
+      function renderAnswerPanel() {
+        const currentQuestion = state.session?.currentQuestion;
+        if (!currentQuestion || !currentQuestion.answerRevealed || !currentQuestion.result) {
+          els.answerPanelWrap.classList.add('hidden');
+          els.answerPanelWrap.innerHTML = '';
+          return;
+        }
+
+        const result = currentQuestion.result;
+        const correct = result.isCorrect;
+        const statusLabel = correct ? '○ 正解' : '× 不正解';
+        const userTimeline = result.userOrder.map((item, index) => {
+          const status = correct
+            ? { className: 'order-good', label: '正しい位置' }
+            : getUserPositionStatus(result.userOrder, result.correctOrder, index);
+          return `
+          <div class="timeline-item ${status.className}">
+            <div class="timeline-position">${formatNumber(index + 1)}番目<br><span class="position-result">${escapeHtml(status.label)}</span></div>
+            <div class="timeline-year">${escapeHtml(formatEventYearRange(item))}</div>
+            <div>
+              <div class="timeline-name">${escapeHtml(item.event)}</div>
+              <div class="timeline-chips">
+                <span class="mini-chip">${escapeHtml(item.region)}</span>
+                <span class="mini-chip">${escapeHtml(item.category)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        }).join('');
+
+        const correctTimeline = result.correctOrder.map((item, index) => `
+          <div class="timeline-item order-good">
+            <div class="timeline-position">${formatNumber(index + 1)}番目<br><span class="position-result">正解</span></div>
+            <div class="timeline-year">${escapeHtml(formatEventYearRange(item))}</div>
+            <div>
+              <div class="timeline-name">${escapeHtml(item.event)}</div>
+              <div class="timeline-chips">
+                <span class="mini-chip">${escapeHtml(item.region)}</span>
+                <span class="mini-chip">${escapeHtml(item.category)}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        const userBlock = `
+          <h3>ユーザーの並び順</h3>
+          <div class="timeline">${userTimeline}</div>
+          <div class="timeline-legend">
+            <span class="legend-chip"><span class="legend-dot good"></span>正しい番号にある出来事</span>
+            <span class="legend-chip"><span class="legend-dot bad"></span>番号が違う出来事</span>
+          </div>
+        `;
+
+        const correctBlock = `
+          <h3>正しい並び順</h3>
+          <div class="timeline">${correctTimeline}</div>
+        `;
+
+        els.answerPanelWrap.classList.remove('hidden');
+        els.answerPanelWrap.className = `card answer-panel ${correct ? 'correct' : 'wrong'}`;
+        els.answerPanelWrap.innerHTML = `
+          <h3 class="answer-title">${statusLabel}</h3>
+          <p class="answer-summary">${escapeHtml(correct ? '古い順に並んでいます。' : '赤く表示された番号の出来事を、右側の正しい順番と見比べてください。')}</p>
+          <div class="grid-2" style="margin-top:14px;">
+            <div>${userBlock}</div>
+            <div>${correctBlock}</div>
+          </div>
+        `;
+      }
+
+      function renderGameScreen() {
+        const currentSession = state.session;
+        if (!currentSession) return;
+        const currentQuestion = currentSession.currentQuestion;
+        if (!currentQuestion) return;
+
+        els.gameProgress.textContent = `第${formatNumber(currentSession.index + 1)}問 / 全${formatNumber(currentSession.questions.length)}問`;
+        els.gameMetaLine.textContent = currentSession.mode === 'review' ? '復習モードで再出題しています。' : '古い順に並び替えてください。';
+        renderGameList();
+        renderAnswerPanel();
+        refreshGameButtons();
+      }
+
+      function finalizeSessionResults() {
+        if (!state.session) return;
+        const total = state.session.results.length;
+        const correctCount = state.session.results.filter((result) => result.isCorrect).length;
+        state.session.summary = {
+          total,
+          correctCount,
+          accuracy: total ? correctCount / total : 0
+        };
+      }
+
+      function buildAnalysisLines(sourceStats, sessionResults = []) {
+        const lines = [];
+        const overallAccuracy = sourceStats.totalQuestions ? sourceStats.totalCorrect / sourceStats.totalQuestions : 0;
+
+        const regionEntries = getSortedBuckets(sourceStats.region);
+        const categoryEntries = getSortedBuckets(sourceStats.category);
+
+        const weakRegion = regionEntries
+          .filter((entry) => entry.questions >= 3)
+          .sort((a, b) => a.accuracy - b.accuracy || b.questions - a.questions)[0];
+        const weakCategory = categoryEntries
+          .filter((entry) => entry.questions >= 3)
+          .sort((a, b) => a.accuracy - b.accuracy || b.questions - a.questions)[0];
+        const strongRegion = regionEntries
+          .filter((entry) => entry.questions >= 3)
+          .sort((a, b) => b.accuracy - a.accuracy || b.questions - a.questions)[0];
+        const strongCategory = categoryEntries
+          .filter((entry) => entry.questions >= 3)
+          .sort((a, b) => b.accuracy - a.accuracy || b.questions - a.questions)[0];
+
+        if (weakRegion && weakRegion.accuracy <= Math.max(0.45, overallAccuracy - 0.10)) {
+          lines.push(`「${weakRegion.name}」の正答率が低めです。現在は ${formatPercent(weakRegion.correct, weakRegion.questions)} です。`);
+        }
+
+        if (weakCategory && weakCategory.accuracy <= Math.max(0.45, overallAccuracy - 0.10)) {
+          lines.push(`「${weakCategory.name}」分野の並び替えでミスが出やすいです。` + ` 正答率は ${formatPercent(weakCategory.correct, weakCategory.questions)} です。`);
+        }
+
+        if (!weakRegion && !weakCategory && (regionEntries.length || categoryEntries.length)) {
+          lines.push('全体的に安定しています。少しずつ問題数を増やしていくと、より細かな傾向が見えてきます。');
+        }
+
+        if (strongRegion && strongRegion.accuracy >= Math.min(0.9, overallAccuracy + 0.12)) {
+          lines.push(`「${strongRegion.name}」は安定しています。${formatPercent(strongRegion.correct, strongRegion.questions)} の正答率です。`);
+        }
+
+        if (strongCategory && strongCategory.accuracy >= Math.min(0.9, overallAccuracy + 0.12)) {
+          lines.push(`「${strongCategory.name}」分野は比較的得意です。${formatPercent(strongCategory.correct, strongCategory.questions)} まで伸びています。`);
+        }
+
+        const bcMistakes = sourceStats.wrongHistory.filter((record) => record.question.items.some((item) => item.year < 0)).length;
+        if (bcMistakes >= 2) {
+          lines.push('紀元前を含む問題で誤答が多い傾向があります。年号のマイナス表記に注意すると改善しやすいです。');
+        }
+
+        const pairCounts = new Map();
+        for (const record of sourceStats.wrongHistory) {
+          const inversion = findFirstInversion(record.userOrder);
+          if (inversion) {
+            const key = `${inversion[0].event} ⇄ ${inversion[1].event}`;
+            pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
+          }
+        }
+
+        const topPair = [...pairCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+        if (topPair && topPair[1] >= 2) {
+          lines.push(`「${topPair[0]}」の前後関係を取り違えやすいです。ここは重点的な復習ポイントです。`);
+        }
+
+        if (!lines.length) {
+          lines.push('まだ十分な履歴がないため、傾向分析はこれから育っていきます。');
+        }
+
+        const sessionWrongs = sessionResults.filter((result) => !result.isCorrect).length;
+        if (sessionWrongs > 0) {
+          lines.unshift(`今回のセッションでは ${formatNumber(sessionWrongs)} 問を間違えました。ホームの「間違えた問題一覧」から復習できます。`);
+        }
+
+        return lines.slice(0, 6);
+      }
+
+      function renderResultScreen() {
+        if (!state.session) return;
+        finalizeSessionResults();
+
+        const summary = state.session.summary || { total: 0, correctCount: 0, accuracy: 0 };
+        const wrongResults = state.session.results.filter((result) => !result.isCorrect);
+
+        els.resultSummaryGrid.innerHTML = `
+          <div class="stat"><div class="label">出題数</div><div class="value">${formatNumber(summary.total)}</div><div class="sub">今回のセッション</div></div>
+          <div class="stat"><div class="label">正解数</div><div class="value">${formatNumber(summary.correctCount)}</div><div class="sub">正しく並べられた問題</div></div>
+          <div class="stat"><div class="label">正答率</div><div class="value">${(summary.accuracy * 100).toFixed(1)}%</div><div class="sub">今回のセッション結果</div></div>
+          <div class="stat"><div class="label">間違えた問題</div><div class="value">${formatNumber(wrongResults.length)}</div><div class="sub">ホームの一覧から復習できます</div></div>
+        `;
+
+        const analysisLines = buildAnalysisLines(state.stats, state.session.results);
+        els.analysisList.innerHTML = analysisLines.map((line) => `<div class="analysis-item">${escapeHtml(line)}</div>`).join('');
+
+        const resultCards = state.session.results.map((result, index) => {
+          const bad = !result.isCorrect;
+          const status = bad ? '不正解' : '正解';
+          const answerLines = result.correctOrder.map((item) => `${item.event}（${formatEventYearRange(item)}）`).join(' → ');
+          const userLines = result.userOrder.map((item) => `${item.event}（${formatEventYearRange(item)}）`).join(' → ');
+          return `
+            <article class="result-card ${bad ? 'wrong' : 'correct'}">
+              <div class="result-head">
+                <h3 class="result-name">第${formatNumber(index + 1)}問</h3>
+                <span class="result-badge ${bad ? 'bad' : 'good'}">${status}</span>
+              </div>
+              <p class="history-summary">問題: ${escapeHtml(result.question.items.map((item) => item.event).join(' / '))}</p>
+              <p class="history-summary">あなたの順番: ${escapeHtml(userLines)}</p>
+              <p class="history-summary">正しい時系列: ${escapeHtml(answerLines)}</p>
+            </article>
+          `;
+        }).join('');
+        els.resultQuestionList.innerHTML = resultCards || '<div class="empty-state">結果がまだありません。</div>';
+
+        const regionBuckets = getSortedBuckets(state.stats.region);
+        const categoryBuckets = getSortedBuckets(state.stats.category);
+        els.resultStatsGrid.innerHTML = `
+          <div>
+            <h3>地域別の正答率</h3>
+            <div class="analysis-list">${regionBuckets.length ? regionBuckets.map((bucket) => `
+              <div class="analysis-item">
+                <strong>${escapeHtml(bucket.name)}</strong>
+                ${formatNumber(bucket.correct)} / ${formatNumber(bucket.questions)} 件
+                <span class="muted">(${formatPercent(bucket.correct, bucket.questions)})</span>
+              </div>
+            `).join('') : '<div class="empty-state">地域別のデータはまだありません。</div>'}</div>
+          </div>
+          <div>
+            <h3>分類別の正答率</h3>
+            <div class="analysis-list">${categoryBuckets.length ? categoryBuckets.map((bucket) => `
+              <div class="analysis-item">
+                <strong>${escapeHtml(bucket.name)}</strong>
+                ${formatNumber(bucket.correct)} / ${formatNumber(bucket.questions)} 件
+                <span class="muted">(${formatPercent(bucket.correct, bucket.questions)})</span>
+              </div>
+            `).join('') : '<div class="empty-state">分類別のデータはまだありません。</div>'}</div>
+          </div>
+        `;
+      }
+
+      function renderAllHome() {
+        renderInfoCards(state.csvBundle);
+        renderHomeStats();
+        renderHomeWrongList();
+        renderSetupScreen();
+        refreshBadges();
+      }
+
+      function renderHomeView() {
+        renderInfoCards(state.csvBundle);
+        renderHomeStats();
+        renderHomeWrongList();
+        refreshBadges();
+      }
+
+      function renderAll() {
+        renderHomeView();
+        renderSetupScreen();
+        if (state.session?.currentQuestion) {
+          renderGameScreen();
+        }
+        if (state.session) {
+          renderResultScreen();
+        }
+      }
+
+      function openSetupScreen() {
+        if (!state.csvBundle) {
+          setBanner('まずはCSVを読み込んでください。サンプルデータでも試せます。', 'error');
+          return;
+        }
+        showScreen('setup');
+        renderSetupScreen();
+      }
+
+      function goHome() {
+        if (state.session) {
+          state.session = null;
+        }
+        showScreen('home');
+        renderHomeView();
+      }
+
+      function syncSettingsFromForm() {
+        const count = Number(els.questionCountInput.value);
+        state.settings.questionCount = Number.isInteger(count) && count > 0 ? count : 1;
+        const sortCount = Number(els.sortCountSelect.value);
+        state.settings.sortCount = [3, 4, 5, 6].includes(sortCount) ? sortCount : 4;
+        const selectedMode = document.querySelector('input[name="relationMode"]:checked');
+        state.settings.relationMode = selectedMode ? selectedMode.value : 'random';
+        saveSettings();
+        renderSetupValidation();
+      }
+
+      function renderHomeFromCurrentState() {
+        renderInfoCards(state.csvBundle);
+        renderHomeStats();
+        renderHomeWrongList();
+        refreshBadges();
+      }
+
+      // --- Event wiring ---------------------------------------------------
+
+      document.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-action]');
+        if (actionEl) {
+          const action = actionEl.dataset.action;
+          const index = Number(actionEl.dataset.index);
+
+          if (action === 'move-up') {
+            moveCurrentItemByDelta(index, -1);
+          } else if (action === 'move-down') {
+            moveCurrentItemByDelta(index, 1);
+          } else if (action === 'review-history') {
+            reviewFromHistoryId(actionEl.dataset.historyId);
+          }
+          return;
+        }
+
+        const toggleEl = event.target.closest('[data-toggle]');
+        if (toggleEl) {
+          const type = toggleEl.dataset.toggle;
+          const value = toggleEl.dataset.value;
+          toggleFilterValue(type, value);
+          return;
+        }
+      });
+
+      els.openSetupBtn.addEventListener('click', openSetupScreen);
+      els.loadSampleBtn.addEventListener('click', loadSampleData);
+      els.clearCsvBtn.addEventListener('click', clearCsvBundle);
+      els.refreshHomeBtn.addEventListener('click', () => {
+        renderHomeFromCurrentState();
+        setBanner('表示を更新しました。', 'success');
+      });
+      els.resetStatsBtn.addEventListener('click', clearAllStats);
+      els.backToHomeFromSetupBtn.addEventListener('click', goHome);
+      els.startPracticeBtn.addEventListener('click', startPracticeFlow);
+      els.regionSelectAllBtn.addEventListener('click', () => {
+        if (!state.csvBundle) return;
+        setSelectedAll('region', sortedUniqueValues(state.csvBundle.rows.map((row) => row.region)));
+      });
+      els.regionClearBtn.addEventListener('click', () => clearSelected('region'));
+      els.categorySelectAllBtn.addEventListener('click', () => {
+        if (!state.csvBundle) return;
+        setSelectedAll('category', sortedUniqueValues(state.csvBundle.rows.map((row) => row.category)));
+      });
+      els.categoryClearBtn.addEventListener('click', () => clearSelected('category'));
+      els.judgeBtn.addEventListener('click', evaluateCurrentQuestion);
+      els.resetOrderBtn.addEventListener('click', resetCurrentOrder);
+      els.gameHomeBtn.addEventListener('click', goHome);
+      els.nextQuestionBtn.addEventListener('click', goToNextQuestion);
+      els.resultHomeBtn.addEventListener('click', goHome);
+
+      els.csvFileInput.addEventListener('change', (event) => {
+        const file = event.target.files && event.target.files[0];
+        loadCsvFromFile(file);
+      });
+
+      els.questionCountInput.addEventListener('input', () => {
+        syncSettingsFromForm();
+      });
+
+      els.sortCountSelect.addEventListener('change', () => {
+        syncSettingsFromForm();
+      });
+
+      document.addEventListener('change', (event) => {
+        const radio = event.target.closest('input[name="relationMode"]');
+        if (radio) {
+          syncSettingsFromForm();
+        }
+      });
+
+      els.sortableList.addEventListener('dragstart', (event) => {
+        const card = event.target.closest('.event-card');
+        if (!card || state.session?.currentQuestion?.answerRevealed) return;
+        card.classList.add('dragging');
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', card.dataset.index);
+      });
+
+      els.sortableList.addEventListener('dragend', (event) => {
+        const card = event.target.closest('.event-card');
+        if (card) card.classList.remove('dragging');
+        els.sortableList.querySelectorAll('.event-card').forEach((el) => el.classList.remove('drag-over'));
+      });
+
+      els.sortableList.addEventListener('dragover', (event) => {
+        if (state.session?.currentQuestion?.answerRevealed) return;
+        const card = event.target.closest('.event-card');
+        if (card) {
+          event.preventDefault();
+          card.classList.add('drag-over');
+        }
+      });
+
+      els.sortableList.addEventListener('dragleave', (event) => {
+        const card = event.target.closest('.event-card');
+        if (card) card.classList.remove('drag-over');
+      });
+
+      els.sortableList.addEventListener('drop', (event) => {
+        if (state.session?.currentQuestion?.answerRevealed) return;
+        event.preventDefault();
+        const sourceIndex = Number(event.dataTransfer.getData('text/plain'));
+        const targetCard = event.target.closest('.event-card');
+        const targetIndex = targetCard ? Number(targetCard.dataset.index) : state.session.currentQuestion.currentOrder.length - 1;
+        if (Number.isFinite(sourceIndex) && Number.isFinite(targetIndex)) {
+          moveCurrentItem(sourceIndex, targetIndex);
+        }
+        els.sortableList.querySelectorAll('.event-card').forEach((el) => el.classList.remove('drag-over'));
+      });
+
+      // --- Startup --------------------------------------------------------
+
+      function initialize() {
+        const savedCsv = loadJson(STORAGE_KEYS.csv, null);
+        if (savedCsv && typeof savedCsv === 'object' && Array.isArray(savedCsv.rows)) {
+          const normalizedRows = savedCsv.rows.map(normalizeEventRecord).filter(Boolean);
+          if (normalizedRows.length) {
+            state.csvBundle = {
+              sourceName: normalizeText(savedCsv.sourceName) || '保存済みCSV',
+              importedAt: Number(savedCsv.importedAt) || Date.now(),
+              rawText: normalizeText(savedCsv.rawText) || '',
+              rows: normalizedRows,
+              summary: savedCsv.summary && typeof savedCsv.summary === 'object'
+                ? {
+                    inputCount: Number(savedCsv.summary.inputCount) || normalizedRows.length,
+                    validCount: Number(savedCsv.summary.validCount) || normalizedRows.length,
+                    excludedCount: Number(savedCsv.summary.excludedCount) || 0,
+                    singleCount: Number(savedCsv.summary.singleCount) || normalizedRows.filter((row) => !isPeriodEvent(row)).length,
+                    periodCount: Number(savedCsv.summary.periodCount) || normalizedRows.filter(isPeriodEvent).length,
+                    periodRatio: Number(savedCsv.summary.periodRatio) || (normalizedRows.length ? normalizedRows.filter(isPeriodEvent).length / normalizedRows.length : 0),
+                    invalidPeriodCount: Number(savedCsv.summary.invalidPeriodCount) || 0,
+                    regionCount: Number(savedCsv.summary.regionCount) || sortedUniqueValues(normalizedRows.map((row) => row.region)).length,
+                    categoryCount: Number(savedCsv.summary.categoryCount) || sortedUniqueValues(normalizedRows.map((row) => row.category)).length
+                  }
+                : {
+                    inputCount: normalizedRows.length,
+                    validCount: normalizedRows.length,
+                    excludedCount: 0,
+                    singleCount: normalizedRows.filter((row) => !isPeriodEvent(row)).length,
+                    periodCount: normalizedRows.filter(isPeriodEvent).length,
+                    periodRatio: normalizedRows.length ? normalizedRows.filter(isPeriodEvent).length / normalizedRows.length : 0,
+                    invalidPeriodCount: 0,
+                    regionCount: sortedUniqueValues(normalizedRows.map((row) => row.region)).length,
+                    categoryCount: sortedUniqueValues(normalizedRows.map((row) => row.category)).length
+                  }
+            };
+          }
+        }
+
+        if (state.csvBundle) {
+          syncSelectionsToBundle(state.csvBundle);
+          saveCsvBundle();
+        }
+        saveSettings();
+        refreshBadges();
+        renderAllHome();
+        showScreen('home');
+        setBanner(state.csvBundle ? '保存済みCSVデータを復元しました。' : 'サンプルデータもすぐ使えます。', 'info');
+      }
+
+      initialize();
+    })();
+  </script>
+</body>
+</html>
