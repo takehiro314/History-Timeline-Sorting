@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" href="apple-touch-icon.png">
-  <title>歴史並び替えトレーニング ver1.1.4</title>
+  <title>歴史並び替えトレーニング ver1.1.5</title>
   <style>
     :root {
       --bg: #f6f1e7;
@@ -870,7 +870,7 @@
   <div class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <p class="eyebrow">CSVで学ぶ時系列トレーニング ver1.1.4</p>
+        <p class="eyebrow">CSVで学ぶ時系列トレーニング ver1.1.5</p>
         <h1 class="brand">歴史並び替えトレーニング</h1>
         <p class="brand-sub">CSVを読み込んで、単年イベント・期間イベントを古い順に並び替える練習をします。スマホでの操作を最優先にしています。</p>
       </div>
@@ -925,6 +925,15 @@
             </div>
           </div>
           <div id="csvInfo" class="grid-3" style="margin-top:14px;"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <h2>CSV内の演習進捗</h2>
+            <span class="small muted">現在読み込んでいるCSVを基準に表示</span>
+          </div>
+          <div id="csvProgressGrid" class="stats-grid"></div>
+          <p class="mini-note" style="margin-top:10px;">完了率は「CSV内の出来事が1回以上出題された割合」、CSV正解率は「出題済み出来事のうち、1回以上正解した出来事の割合」です。</p>
         </section>
 
         <section class="card">
@@ -1011,7 +1020,27 @@
         </section>
 
         <section class="card">
-          <h2>4. 出題方法</h2>
+          <h2>4. 出題対象</h2>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input type="radio" name="questionPoolMode" value="random">
+              <span>
+                <strong>無作為に問題を選ぶ</strong>
+                <span class="muted">正解済みかどうかに関係なく、選択条件に合う出来事から出題します。</span>
+              </span>
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="questionPoolMode" value="skipCorrect">
+              <span>
+                <strong>正解した問題をスキップ</strong>
+                <span class="muted">すでに正解した出来事を候補から外し、未正解の出来事を中心に出題します。</span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>5. 出題方法</h2>
           <div class="radio-group">
             <label class="radio-item">
               <input type="radio" name="relationMode" value="random">
@@ -1143,6 +1172,7 @@
         csvFileInput: document.getElementById('csvFileInput'),
         csvLoadState: document.getElementById('csvLoadState'),
         csvInfo: document.getElementById('csvInfo'),
+        csvProgressGrid: document.getElementById('csvProgressGrid'),
         homeStatsGrid: document.getElementById('homeStatsGrid'),
         homeRegionStats: document.getElementById('homeRegionStats'),
         homeCategoryStats: document.getElementById('homeCategoryStats'),
@@ -1570,6 +1600,7 @@
           totalCorrect: 0,
           region: {},
           category: {},
+          eventProgress: {},
           wrongHistory: []
         };
 
@@ -1579,6 +1610,7 @@
         base.totalCorrect = Number(raw.totalCorrect) || 0;
         base.region = normalizeBucketMap(raw.region);
         base.category = normalizeBucketMap(raw.category);
+        base.eventProgress = normalizeEventProgressMap(raw.eventProgress);
         base.wrongHistory = Array.isArray(raw.wrongHistory) ? raw.wrongHistory.map(normalizeWrongRecord).filter(Boolean) : [];
         return base;
       }
@@ -1591,6 +1623,19 @@
           result[key] = {
             questions: Number(value?.questions) || 0,
             correct: Number(value?.correct) || 0
+          };
+        }
+        return result;
+      }
+
+      function normalizeEventProgressMap(raw) {
+        const result = {};
+        if (!raw || typeof raw !== 'object') return result;
+        for (const [key, value] of Object.entries(raw)) {
+          result[key] = {
+            attempts: Number(value?.attempts) || 0,
+            correct: Number(value?.correct) || 0,
+            lastAttemptAt: Number(value?.lastAttemptAt) || 0
           };
         }
         return result;
@@ -1630,6 +1675,7 @@
             value: normalizeText(rawQuestion.focus.value)
           } : null,
           relationMode: rawQuestion.relationMode === 'grouped' ? 'grouped' : 'random',
+          poolMode: rawQuestion.poolMode === 'skipCorrect' ? 'skipCorrect' : 'random',
           items
         };
       }
@@ -1657,6 +1703,7 @@
           questionCount: 10,
           sortCount: 4,
           relationMode: 'random',
+          questionPoolMode: 'random',
           selectedRegions: [],
           selectedCategories: []
         };
@@ -1666,6 +1713,7 @@
         base.questionCount = Math.max(1, Number(raw.questionCount) || 10);
         base.sortCount = [3, 4, 5, 6].includes(Number(raw.sortCount)) ? Number(raw.sortCount) : 4;
         base.relationMode = raw.relationMode === 'grouped' ? 'grouped' : 'random';
+        base.questionPoolMode = raw.questionPoolMode === 'skipCorrect' ? 'skipCorrect' : 'random';
         base.selectedRegions = Array.isArray(raw.selectedRegions) ? raw.selectedRegions.map(normalizeText).filter(Boolean) : [];
         base.selectedCategories = Array.isArray(raw.selectedCategories) ? raw.selectedCategories.map(normalizeText).filter(Boolean) : [];
         return base;
@@ -1721,6 +1769,47 @@
         const regionSet = new Set(getSelectedRegions());
         const categorySet = new Set(getSelectedCategories());
         return rows.filter((row) => regionSet.has(row.region) && categorySet.has(row.category));
+      }
+
+      function getEventProgressKey(event) {
+        const start = Number.isFinite(Number(event.startYear)) ? Number(event.startYear) : Number(event.year);
+        const end = Number.isFinite(Number(event.endYear)) ? Number(event.endYear) : '';
+        return [normalizeText(event.event), start, end, normalizeText(event.region), normalizeText(event.category)].join('||');
+      }
+
+      function getEventProgress(event) {
+        return state.stats.eventProgress[getEventProgressKey(event)] || { attempts: 0, correct: 0, lastAttemptAt: 0 };
+      }
+
+      function hasEventBeenCorrect(event) {
+        return getEventProgress(event).correct > 0;
+      }
+
+      function getPracticePoolRows() {
+        const filtered = getFilteredRows();
+        if (state.settings.questionPoolMode !== 'skipCorrect') return filtered;
+        return filtered.filter((row) => !hasEventBeenCorrect(row));
+      }
+
+      function getCsvProgressSummary() {
+        const rows = getCurrentCsvRows();
+        const total = rows.length;
+        let attempted = 0;
+        let correct = 0;
+        for (const row of rows) {
+          const progress = getEventProgress(row);
+          if (progress.attempts > 0) attempted += 1;
+          if (progress.correct > 0) correct += 1;
+        }
+        return {
+          total,
+          attempted,
+          correct,
+          remaining: Math.max(0, total - correct),
+          completionRate: total ? attempted / total : 0,
+          correctRateAmongAttempted: attempted ? correct / attempted : 0,
+          correctRateOfCsv: total ? correct / total : 0
+        };
       }
 
       function syncSelectionsToBundle(bundle) {
@@ -1809,6 +1898,26 @@
         `;
       }
 
+      function renderCsvProgress() {
+        if (!els.csvProgressGrid) return;
+        const summary = getCsvProgressSummary();
+        if (!summary.total) {
+          els.csvProgressGrid.innerHTML = `
+            <div class="stat"><div class="label">CSV演習完了率</div><div class="value">0.0%</div><div class="sub">CSV未読み込み</div></div>
+            <div class="stat"><div class="label">CSV正解率</div><div class="value">0.0%</div><div class="sub">CSV未読み込み</div></div>
+            <div class="stat"><div class="label">演習済み出来事</div><div class="value">0 / 0</div><div class="sub">1回以上出題済み</div></div>
+            <div class="stat"><div class="label">未正解出来事</div><div class="value">0</div><div class="sub">スキップ対象外</div></div>
+          `;
+          return;
+        }
+        els.csvProgressGrid.innerHTML = `
+          <div class="stat"><div class="label">CSV演習完了率</div><div class="value">${(summary.completionRate * 100).toFixed(1)}%</div><div class="sub">${formatNumber(summary.attempted)} / ${formatNumber(summary.total)} 件が出題済み</div></div>
+          <div class="stat"><div class="label">CSV正解率</div><div class="value">${(summary.correctRateAmongAttempted * 100).toFixed(1)}%</div><div class="sub">出題済みのうち ${formatNumber(summary.correct)} 件が正解済み</div></div>
+          <div class="stat"><div class="label">CSV全体の正解済み</div><div class="value">${(summary.correctRateOfCsv * 100).toFixed(1)}%</div><div class="sub">${formatNumber(summary.correct)} / ${formatNumber(summary.total)} 件</div></div>
+          <div class="stat"><div class="label">未正解出来事</div><div class="value">${formatNumber(summary.remaining)}</div><div class="sub">スキップ出題の候補</div></div>
+        `;
+      }
+
       function renderHomeStats() {
         const overallAccuracy = formatPercent(state.stats.totalCorrect, state.stats.totalQuestions);
         const wrongCount = state.stats.wrongHistory.length;
@@ -1866,6 +1975,9 @@
         [...document.querySelectorAll('input[name="relationMode"]')].forEach((radio) => {
           radio.checked = radio.value === state.settings.relationMode;
         });
+        [...document.querySelectorAll('input[name="questionPoolMode"]')].forEach((radio) => {
+          radio.checked = radio.value === state.settings.questionPoolMode;
+        });
 
         els.regionOptions.innerHTML = bundle && allRegions.length
           ? allRegions.map((value) => `<button type="button" class="chip ${regionSelected.has(value) ? 'selected' : ''}" data-toggle="region" data-value="${escapeHtml(value)}">${escapeHtml(value)}</button>`).join('')
@@ -1879,6 +1991,10 @@
       }
 
       function getCandidateRows() {
+        return getPracticePoolRows();
+      }
+
+      function getAllConditionRows() {
         return getFilteredRows();
       }
 
@@ -1910,18 +2026,23 @@
 
           const candidateCount = getCandidateRows().length;
           if (candidateCount < sortCount) {
-            messages.push(`選択条件に合う候補が ${candidateCount} 件しかないため、${sortCount} 件の並び替え問題を作れません。`);
+            const modeLabel = state.settings.questionPoolMode === 'skipCorrect' ? '未正解の候補' : '選択条件に合う候補';
+            messages.push(`${modeLabel}が ${candidateCount} 件しかないため、${sortCount} 件の並び替え問題を作れません。`);
           }
         }
 
         let candidateInfoHtml = '';
         if (state.csvBundle) {
+          const allCandidateRows = getAllConditionRows();
           const candidateRows = getCandidateRows();
           const candidatePeriods = candidateRows.filter(isPeriodEvent).length;
           const candidateSingles = candidateRows.length - candidatePeriods;
+          const skippedCorrect = Math.max(0, allCandidateRows.length - candidateRows.length);
+          const modeLabel = state.settings.questionPoolMode === 'skipCorrect' ? '未正解候補' : '出題候補';
           candidateInfoHtml = `
             <div class="banner info" style="margin-top:10px;">
-              候補数：${formatNumber(candidateRows.length)}件 / 単年：${formatNumber(candidateSingles)}件 / 期間：${formatNumber(candidatePeriods)}件 / 期間割合：${formatPercent(candidatePeriods, candidateRows.length)}<br>
+              ${modeLabel}：${formatNumber(candidateRows.length)}件 / 単年：${formatNumber(candidateSingles)}件 / 期間：${formatNumber(candidatePeriods)}件 / 期間割合：${formatPercent(candidatePeriods, candidateRows.length)}<br>
+              ${state.settings.questionPoolMode === 'skipCorrect' ? `正解済みとしてスキップ：${formatNumber(skippedCorrect)}件<br>` : ''}
               期間イベントを含む問題では、その期間内に含まれる出来事を同じ問題から除外します。期間イベントを使うかどうかは、候補内の期間イベント割合に応じて自動で判断されます。
             </div>
           `;
@@ -2039,6 +2160,7 @@
           prompt: meta.prompt || '次の出来事を古い順に並び替えてください。',
           subPrompt: meta.subPrompt || '年代が小さいほど古いです。ドラッグと上下ボタンの両方に対応しています。',
           relationMode: meta.relationMode === 'grouped' ? 'grouped' : 'random',
+          poolMode: meta.poolMode === 'skipCorrect' ? 'skipCorrect' : 'random',
           focus: meta.focus ? { type: meta.focus.type, value: meta.focus.value } : null,
           items: selectedItems,
           regions: sortedUniqueValues(selectedItems.map((item) => item.region)),
@@ -2088,6 +2210,7 @@
           const question = makeQuestionFromItems(chosen.slice(0, sortCount), {
             source: 'practice',
             relationMode: state.settings.relationMode,
+            poolMode: state.settings.questionPoolMode,
             focus,
             prompt: focus
               ? `${focus.type === 'region' ? `「${focus.value}」` : `「${focus.value}」`}を含む出来事が中心の問題です。古い順に並び替えてください。`
@@ -2110,6 +2233,7 @@
             return makeQuestionFromItems(question.items || [], {
               source: 'review',
               relationMode: question.relationMode || 'random',
+              poolMode: 'random',
               focus: question.focus || null,
               prompt: question.prompt || '次の出来事を古い順に並び替えてください。',
               subPrompt: question.subPrompt || '年代が小さいほど古いです。'
@@ -2190,7 +2314,7 @@
           return { className: 'order-bad', label: '位置違い' };
         }
 
-        // ver1.1.4: 学習者に分かりやすくするため、隣接関係ではなく
+        // ver1.1.5: 学習者に分かりやすくするため、隣接関係ではなく
         // 「この番号に入るべき出来事か」で色分けする。
         // 同じ年代の出来事同士は順不同で正解扱いにする。
         const sameItem = userItem.id === correctItem.id;
@@ -2201,7 +2325,7 @@
       }
 
       function buildExplanation(question, userOrder, correctOrder) {
-        // ver1.1.4: 判定後の画面では文章解説を出さず、色分けで誤答箇所を示す。
+        // ver1.1.5: 判定後の画面では文章解説を出さず、色分けで誤答箇所を示す。
         // 履歴互換用に空文字を返す。
         return '';
       }
@@ -2224,6 +2348,18 @@
           if (!state.stats.category[category]) state.stats.category[category] = { questions: 0, correct: 0 };
           state.stats.category[category].questions += 1;
           if (result.isCorrect) state.stats.category[category].correct += 1;
+        }
+
+        for (const item of question.items) {
+          const key = getEventProgressKey(item);
+          if (!state.stats.eventProgress[key]) {
+            state.stats.eventProgress[key] = { attempts: 0, correct: 0, lastAttemptAt: 0 };
+          }
+          state.stats.eventProgress[key].attempts += 1;
+          if (result.isCorrect) {
+            state.stats.eventProgress[key].correct += 1;
+          }
+          state.stats.eventProgress[key].lastAttemptAt = Date.now();
         }
 
         if (!result.isCorrect) {
@@ -2354,6 +2490,7 @@
         state.stats.totalCorrect = 0;
         state.stats.region = {};
         state.stats.category = {};
+        state.stats.eventProgress = {};
         state.stats.wrongHistory = [];
         clearStatsStorage();
         saveStats();
@@ -2404,6 +2541,7 @@
         els.questionSubPrompt.textContent = currentQuestion.subPrompt || '年代が小さいほど古いです。';
         els.questionMetaPills.innerHTML = [
           currentQuestion.relationMode === 'grouped' ? '<span class="status-pill">関連性重視</span>' : '<span class="status-pill">完全ランダム</span>',
+          currentQuestion.poolMode === 'skipCorrect' ? '<span class="info-pill">正解済みをスキップ</span>' : '<span class="info-pill">無作為出題</span>',
           currentQuestion.focus ? `<span class="info-pill">${escapeHtml(currentQuestion.focus.type === 'region' ? '地域' : '分類')}：${escapeHtml(currentQuestion.focus.value)}</span>` : '',
           `<span class="info-pill">${formatNumber(currentQuestion.items.length)}件の出来事</span>`
         ].filter(Boolean).join('');
@@ -2663,6 +2801,7 @@
 
       function renderAllHome() {
         renderInfoCards(state.csvBundle);
+        renderCsvProgress();
         renderHomeStats();
         renderHomeWrongList();
         renderSetupScreen();
@@ -2671,6 +2810,7 @@
 
       function renderHomeView() {
         renderInfoCards(state.csvBundle);
+        renderCsvProgress();
         renderHomeStats();
         renderHomeWrongList();
         refreshBadges();
@@ -2711,12 +2851,15 @@
         state.settings.sortCount = [3, 4, 5, 6].includes(sortCount) ? sortCount : 4;
         const selectedMode = document.querySelector('input[name="relationMode"]:checked');
         state.settings.relationMode = selectedMode ? selectedMode.value : 'random';
+        const selectedPoolMode = document.querySelector('input[name="questionPoolMode"]:checked');
+        state.settings.questionPoolMode = selectedPoolMode ? selectedPoolMode.value : 'random';
         saveSettings();
         renderSetupValidation();
       }
 
       function renderHomeFromCurrentState() {
         renderInfoCards(state.csvBundle);
+        renderCsvProgress();
         renderHomeStats();
         renderHomeWrongList();
         refreshBadges();
@@ -2789,7 +2932,7 @@
       });
 
       document.addEventListener('change', (event) => {
-        const radio = event.target.closest('input[name="relationMode"]');
+        const radio = event.target.closest('input[name="relationMode"], input[name="questionPoolMode"]');
         if (radio) {
           syncSettingsFromForm();
         }
